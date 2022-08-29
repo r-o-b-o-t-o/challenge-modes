@@ -1,0 +1,3 @@
+ChallengeModesConfig = {
+	maxLevel = 60,
+}
