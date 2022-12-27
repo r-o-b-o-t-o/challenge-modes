@@ -114,7 +114,7 @@ class ChallengeModes {
 					}
 				}
 			}
-		}, 10, 0);
+		}, 5000, 0);
 
 		RegisterGameObjectEvent(this.allianceGobjEntry, GameObjectEvents.GAMEOBJECT_EVENT_ON_USE, (...args) => this.onAllianceBannerUse(...args));
 		RegisterGameObjectEvent(this.hordeGobjEntry, GameObjectEvents.GAMEOBJECT_EVENT_ON_USE, (...args) => this.onHordeBannerUse(...args));
@@ -160,6 +160,7 @@ class ChallengeModes {
 		}
 
 		this.enlistedPlayers[player.GetGUID().toString()] = challenge;
+		AIO.Handle(player, this.channelName, "Enlisted", EChallengeMode[challenge]);
 
 		// TODO: remove from group if members are not in the same challenge
 	}

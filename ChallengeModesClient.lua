@@ -41,6 +41,7 @@ local hordeAtlas = {
 	HeaderSize = { W = 459, H = 119, Y = 50 },
 	CloseCorner = { 0.833984375, 0.8662109375, 0.1484375, 0.1796875 },
 	WideScroll = { 0.2509765625, 0.75390625, 0.3525390625, 0.7802734375 },
+	EnlistSplash = { 0.001953125, 0.9140625, 0.28125, 0.556640625 },
 }
 local allianceAtlas = {
 	TopBorder = { 0.0, 0.68359375, 0.0322265625, 0.0615234375 },
@@ -61,6 +62,7 @@ local allianceAtlas = {
 	HeaderSize = { W = 315, H = 134, Y = 68 },
 	CloseCorner = { 0.1650390625, 0.197265625, 0.5791015625, 0.6103515625 },
 	WideScroll = { 0.2509765625, 0.75390625, 0.3525390625, 0.7802734375 },
+	EnlistSplash = { 0.001953125, 0.9140625, 0.001953125, 0.27734375 },
 }
 local _, _, _, race = GetPlayerInfoByGUID(UnitGUID("player"))
 local atlas, faction, titleColor, textColor
@@ -293,7 +295,6 @@ if scrollBtnTextures ~= nil then
 	challengeModes.confirmWindow.enlistButton:SetPushedTexture(scrollBtnTextures.Pushed)
 end
 challengeModes.confirmWindow.enlistButton:SetScript("OnClick", function()
-	PlaySound("GLUECREATECHARACTERBUTTON")
 	AIO.Handle(channelName, "enlist", challengeModes.selectedChallenge)
 end)
 
@@ -416,4 +417,56 @@ end
 function Handlers.CloseBannerUI()
 	challengeModes.mainWindow:Hide()
 	challengeModes.confirmWindow:Hide()
+end
+
+function Handlers.Enlisted(player, challenge)
+	challengeModes.enlistSplashFrame = CreateFrame("Frame", "ChallengeModesEnlistSplash", UIParent)
+	challengeModes.enlistSplashFrame:SetSize(467 * scaleX, 141 * scaleY)
+	challengeModes.enlistSplashFrame:EnableMouse(false)
+	challengeModes.enlistSplashFrame:SetPoint("BOTTOM", 0, 150)
+	challengeModes.enlistSplashFrame:SetAlpha(0)
+
+	local text = challengeModes.enlistSplashFrame:CreateFontString()
+	text:SetSize(350 * scaleX, 140 * scaleY)
+	text:SetPoint("CENTER", 0, 0)
+	text:SetFont("Fonts\\FRIZQT__.TTF", 16)
+	text:SetText("Enlisted for " .. challenge .. " Challenge!")
+	text:SetShadowOffset(1, -1)
+
+	CreateTexture(467 * scaleX, 141 * scaleY, atlas.EnlistSplash, "ARTWORK", "CENTER", 0, 0, "Interface/ChallengeModes/ScenarioHordeAlliance", challengeModes.enlistSplashFrame)
+
+	local animGroup = challengeModes.enlistSplashFrame:CreateAnimationGroup()
+	local alphaAnim = animGroup:CreateAnimation("Alpha")
+	alphaAnim:SetDuration(0.1)
+	alphaAnim:SetChange(1)
+	alphaAnim:SetSmoothing("IN")
+	animGroup:SetScript("OnUpdate", function()
+		if animGroup:GetLoopState() == "NONE" then
+			challengeModes.enlistSplashFrame:SetAlpha(1)
+		end
+	end)
+	animGroup:Play()
+	PlaySound("GLUECREATECHARACTERBUTTON")
+
+	local timer = 5
+	challengeModes.enlistSplashFrame:SetScript("OnUpdate", function(self, dt)
+		if timer > 0 then
+			timer = timer - dt
+
+			if timer <= 0 then
+				animGroup = challengeModes.enlistSplashFrame:CreateAnimationGroup()
+				alphaAnim = animGroup:CreateAnimation("Alpha")
+				alphaAnim:SetDuration(2)
+				alphaAnim:SetChange(-1)
+				animGroup:SetScript("OnUpdate", function()
+					if animGroup:GetLoopState() == "NONE" then
+						challengeModes.enlistSplashFrame:SetScript("OnUpdate", nil)
+						challengeModes.enlistSplashFrame:Hide()
+						challengeModes.enlistSplashFrame = nil
+					end
+				end)
+				animGroup:Play()
+			end
+		end
+	end)
 end
