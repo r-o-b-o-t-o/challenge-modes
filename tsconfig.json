@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		"target": "esnext",
+		"lib": [
+			"esnext"
+		],
+		"moduleResolution": "node",
+		"types": [
+			"lua-types/5.2",
+			"@azerothcore/eluna-ts-definitions",
+			"@azerothcore/eluna-ts-lib"
+		],
+		"typeRoots": [
+			"./node_modules/@types",
+			"./node_modules/@azerothcore/eluna-ts-definitions/src/index.d.ts",
+			"./node_modules/@azerothcore/eluna-ts-lib/src/index.ts"
+		],
+		"rootDir": "./server",
+		"outDir": "build/"
+	},
+	"include": [
+		"server/**/*.ts"
+	],
+	"exclude": ["lib/**/*.lua"],
+	"tstl": {
+		"noResolvePaths": ["AIO"],
+		"luaBundleEntry": "server/challengeModes.ts",
+		"luaBundle": "challengeModes.lua"
+	}
+}

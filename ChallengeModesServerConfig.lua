@@ -1,3 +1,0 @@
-ChallengeModesConfig = {
-	maxLevel = 60,
-}

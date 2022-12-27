@@ -75,7 +75,6 @@ else
 	titleColor = "FF000031"
 	textColor = "FF00165E"
 end
-local level = UnitLevel("player")
 
 local function CreateTexture(width, height, coords, layer, anchor, x, y, texture, parent)
 	if anchor == nil then
@@ -109,6 +108,16 @@ challengeModes.mainWindow:SetSize(715, 530)
 challengeModes.mainWindow:EnableMouse(true)
 challengeModes.mainWindow:SetPoint("CENTER", 0, 0)
 challengeModes.mainWindow:Hide()
+
+_G["ChallengeModes.mainWindow"] = challengeModes.mainWindow -- https://wowpedia.fandom.com/wiki/Make_frames_closable_with_the_Escape_key
+tinsert(UISpecialFrames, challengeModes.mainWindow:GetName())
+
+challengeModes.mainWindow:SetScript("OnShow", function()
+	PlaySound("GAMEDIALOGOPEN")
+end)
+challengeModes.mainWindow:SetScript("OnHide", function()
+	PlaySound("GAMEDIALOGCLOSE")
+end)
 
 -- Background
 for x = 0, 3 do
@@ -198,6 +207,10 @@ challengeModes.mainWindow.closeButton = CreateFrame("Button", nil, challengeMode
 challengeModes.mainWindow.closeButton:SetPoint("TOPRIGHT", 0, 0)
 challengeModes.mainWindow.closeButton:EnableMouse(true)
 challengeModes.mainWindow.closeButton:SetSize(32, 32)
+challengeModes.mainWindow.closeButton:SetScript("OnClick", function()
+	challengeModes.mainWindow:Hide()
+	AIO.Handle(channelName, "closeBannerUI")
+end)
 
 -- Confirm window
 challengeModes.confirmWindow = CreateFrame("Frame", "ChallengeModesConfirmWindow", UIParent)
@@ -205,6 +218,17 @@ challengeModes.confirmWindow:SetSize(515 * scaleX, 438 * scaleY)
 challengeModes.confirmWindow:EnableMouse(true)
 challengeModes.confirmWindow:SetPoint("CENTER", 0, 0)
 challengeModes.confirmWindow:Hide()
+
+_G["ChallengeModes.confirmWindow"] = challengeModes.confirmWindow -- https://wowpedia.fandom.com/wiki/Make_frames_closable_with_the_Escape_key
+tinsert(UISpecialFrames, challengeModes.confirmWindow:GetName())
+
+challengeModes.confirmWindow:SetScript("OnShow", function()
+	PlaySound("QUESTLOGOPEN")
+end)
+challengeModes.confirmWindow:SetScript("OnHide", function()
+	PlaySound("QUESTLOGCLOSE")
+	AIO.Handle(channelName, "closeBannerUI")
+end)
 
 CreateTexture(515 * scaleX, 438 * scaleY, atlas.WideScroll, "BACKGROUND", "CENTER", 0, 0, nil, challengeModes.confirmWindow)
 
@@ -214,7 +238,7 @@ challengeModes.confirmWindow.closeButton:EnableMouse(true)
 challengeModes.confirmWindow.closeButton:SetSize(32, 32)
 
 challengeModes.confirmWindow.title = challengeModes.confirmWindow:CreateFontString()
-challengeModes.confirmWindow.title:SetPoint("TOP", 0, -36)
+challengeModes.confirmWindow.title:SetPoint("TOP", 0, -30)
 challengeModes.confirmWindow.title:SetFont("Fonts\\FRIZQT__.TTF", 20)
 
 local confirmLinesY
@@ -256,7 +280,7 @@ end
 
 challengeModes.confirmWindow.enlistButton = CreateFrame("Button", nil, challengeModes.confirmWindow, "UIPanelButtonTemplate")
 challengeModes.confirmWindow.enlistButton:SetSize(160, 40)
-challengeModes.confirmWindow.enlistButton:SetPoint("CENTER", -85, -140)
+challengeModes.confirmWindow.enlistButton:SetPoint("CENTER", -85, -146)
 challengeModes.confirmWindow.enlistButton:EnableMouse(true)
 challengeModes.confirmWindow.enlistButtonText = challengeModes.confirmWindow.enlistButton:CreateFontString()
 challengeModes.confirmWindow.enlistButtonText:SetFont("Fonts\\MORPHEUS.TTF", 18, "OUTLINE")
@@ -269,12 +293,13 @@ if scrollBtnTextures ~= nil then
 	challengeModes.confirmWindow.enlistButton:SetPushedTexture(scrollBtnTextures.Pushed)
 end
 challengeModes.confirmWindow.enlistButton:SetScript("OnClick", function()
-	challengeModes.confirmWindow:Hide()
+	PlaySound("GLUECREATECHARACTERBUTTON")
+	AIO.Handle(channelName, "enlist", challengeModes.selectedChallenge)
 end)
 
 challengeModes.confirmWindow.cancelButton = CreateFrame("Button", nil, challengeModes.confirmWindow, "UIPanelButtonGrayTemplate")
 challengeModes.confirmWindow.cancelButton:SetSize(160, 40)
-challengeModes.confirmWindow.cancelButton:SetPoint("CENTER", 85, -140)
+challengeModes.confirmWindow.cancelButton:SetPoint("CENTER", 85, -146)
 challengeModes.confirmWindow.cancelButton:EnableMouse(true)
 challengeModes.confirmWindow.cancelButtonText = challengeModes.confirmWindow.cancelButton:CreateFontString()
 challengeModes.confirmWindow.cancelButtonText:SetFont("Fonts\\MORPHEUS.TTF", 18, "OUTLINE")
@@ -288,20 +313,24 @@ end)
 
 local scrollButtons = { challengeModes.mainWindow.scroll1Button, challengeModes.mainWindow.scroll2Button, challengeModes.mainWindow.scroll3Button }
 for _, btn in pairs(scrollButtons) do
+	local challengeId
 	local challengeName
 	if btn == challengeModes.mainWindow.scroll1Button then
+		challengeId = 0
 		challengeName = "Hardcore"
 	elseif btn == challengeModes.mainWindow.scroll2Button then
+		challengeId = 1
 		challengeName = "Ironman"
 	else
+		challengeId = 2
 		challengeName = "Bloodthirsty"
 	end
 
 	-- Add the detail lines
 	local confirmLineFrame = confirmLineFrames[challengeName]
-	confirmLinesY = 100
+	confirmLinesY = 110
 	if challengeName == "Ironman" then
-		confirmLinesY = 110
+		confirmLinesY = 120
 	end
 	CreateConfirmXLine("Any death is permanent and will delete your character", confirmLineFrame)
 	if challengeName == "Ironman" then
@@ -313,6 +342,7 @@ for _, btn in pairs(scrollButtons) do
 	CreateConfirmXLine("Can only party up with other " .. challengeName .. " players", confirmLineFrame)
 	CreateConfirmXLine("Cannot use the Auction House", confirmLineFrame)
 	CreateConfirmXLine("Cannot trade with other players", confirmLineFrame)
+	CreateConfirmXLine("Cannot receive items or money by mail", confirmLineFrame)
 	CreateConfirmXLine("Cannot use Guild Banks", confirmLineFrame)
 	CreateConfirmXLine("Cannot be turned off", confirmLineFrame)
 
@@ -322,6 +352,8 @@ for _, btn in pairs(scrollButtons) do
 	CreateConfirmOKLine("Death is not permanent anymore at maximum level", confirmLineFrame)
 
 	btn:SetScript("OnClick", function()
+		challengeModes.selectedChallenge = challengeId
+
 		-- Set the title
 		challengeModes.confirmWindow.title:SetText("|C" .. titleColor .. challengeName .. " Challenge" .. "|r")
 
@@ -337,6 +369,51 @@ for _, btn in pairs(scrollButtons) do
 	end)
 end
 
-function Handlers.OpenBannerUI(player, game)
+function Handlers.OpenBannerUI(player, eligible)
+	if eligible ~= true then
+		local errTxt = ""
+		if eligible == "EXP" then
+			errTxt = "Only available to characters with no experience points.\nCreate a fresh character to start the challenge."
+		elseif eligible == "ITEMS" then
+			errTxt = "You possess items that were not included in your starting equipment.\nGet rid of them or create a fresh character to start the challenge."
+		elseif eligible == "MONEY" then
+			errTxt = "You have money in your inventory.\nGet rid of it or create a fresh character to start the challenge."
+		elseif eligible == "MAIL" then
+			errTxt = "You have pending mails.\nCreate a fresh character to start the challenge."
+		elseif eligible == "DEATHS" then
+			errTxt = "This character has died before...\nCreate a fresh character to start the challenge."
+		elseif eligible == "RANGE" then
+			errTxt = "You are too far away."
+		elseif eligible == "CHALLENGEACTIVE" then
+			errTxt = "You have already accepted a challenge."
+		end
+
+		for _, btn in pairs(scrollButtons) do
+			btn:Disable()
+			btn:SetMotionScriptsWhileDisabled(true)
+
+			btn:SetScript("OnEnter", function()
+				GameTooltip:SetOwner(btn, "ANCHOR_TOP")
+				GameTooltip:SetText(errTxt)
+				GameTooltip:Show()
+			end)
+
+			btn:SetScript("OnLeave", function()
+				GameTooltip:Hide()
+			end)
+		end
+	else
+		for _, btn in pairs(scrollButtons) do
+			btn:Enable()
+			btn:SetScript("OnEnter", nil)
+			btn:SetScript("OnLeave", nil)
+		end
+	end
+
 	challengeModes.mainWindow:Show()
+end
+
+function Handlers.CloseBannerUI()
+	challengeModes.mainWindow:Hide()
+	challengeModes.confirmWindow:Hide()
 end
