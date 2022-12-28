@@ -35,6 +35,7 @@ class ChallengeModes {
 		this.playersUsingBanner = [];
 		this.enlistedPlayers = {};
 		this.registerBannerEvents();
+		this.registerPlayerEvents();
 	}
 
 	private checkEligible(player: Player) {
@@ -90,7 +91,7 @@ class ChallengeModes {
 		}
 
 		// Check if a challenge is already active
-		if (player.GetGUID().toString() in this.enlistedPlayers) {
+		if (this.isPlayerEnlisted(player)) {
 			return "CHALLENGEACTIVE";
 		}
 
@@ -120,6 +121,11 @@ class ChallengeModes {
 		RegisterGameObjectEvent(this.hordeGobjEntry, GameObjectEvents.GAMEOBJECT_EVENT_ON_USE, (...args) => this.onHordeBannerUse(...args));
 	}
 
+	private registerPlayerEvents() {
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_REPOP, (...args) => this.onPlayerRepop(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_RESURRECT, (...args) => this.onPlayerResurrect(...args));
+	}
+
 	private onAllianceBannerUse(event: GameObjectEvents, gobj: GameObject, player: Player) {
 		if (player.IsAlliance()) {
 			this.onBannerUse(gobj, player);
@@ -144,6 +150,24 @@ class ChallengeModes {
 		});
 
 		AIO.Handle(player, this.channelName, "OpenBannerUI", this.checkEligible(player));
+	}
+
+	private onPlayerRepop(event: PlayerEvents, player: Player) {
+		if (!this.isPlayerEnlisted(player)) {
+			return;
+		}
+
+		// When the player releases spirit (PLAYER_EVENT_ON_REPOP), force them to resurrect.
+		// This will call onPlayerResurrect which handles the character's deletion.
+		player.ResurrectPlayer(1, false);
+	}
+
+	private onPlayerResurrect(event: PlayerEvents, player: Player) {
+		if (!this.isPlayerEnlisted(player)) {
+			return;
+		}
+
+		RunCommand(`character erase ${player.GetName()}`);
 	}
 
 	private enlist(player: Player, challenge: EChallengeMode) {
@@ -184,6 +208,10 @@ class ChallengeModes {
 			return false;
 		}
 		return player.IsInRange(banner, 0, 15);
+	}
+
+	private isPlayerEnlisted(player: Player): boolean {
+		return player.GetGUID().toString() in this.enlistedPlayers;
 	}
 }
 
