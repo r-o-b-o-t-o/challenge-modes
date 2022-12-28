@@ -4,6 +4,7 @@ export class Config {
 	public static instance: Config;
 
 	public maxLevel = 80;
+	public elunaDatabase = "acore_eluna";
 
 	public static read(): void {
 		const [file, err, errCode] = io.open(this.getDirectory() + "/../config.json", "r");

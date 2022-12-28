@@ -1,15 +1,18 @@
+import { Config } from "./Config";
+import { Character } from "./db/Character";
+
 const AIO = require("AIO") as Aio;
+
+export enum EChallengeMode {
+	Hardcore = 0,
+	Ironman = 1,
+	Bloodthirsty = 2,
+}
 
 interface IPlayerUsingBanner {
 	bannerGobj: number;
 	player: number;
 	map: number;
-}
-
-enum EChallengeMode {
-	Hardcore = 0,
-	Ironman = 1,
-	Bloodthirsty = 2,
 }
 
 class ChallengeModes {
@@ -24,7 +27,7 @@ class ChallengeModes {
 
 	private readonly channelName = "ChallengeModes";
 	private playersUsingBanner: IPlayerUsingBanner[];
-	private enlistedPlayers: { [key: string]: EChallengeMode }; // The key is the character's GUID
+	private characters: LuaMap<string, Character>; // Key: character's GUID converted to string
 
 	public constructor() {
 		AIO.AddHandlers(this.channelName, {
@@ -33,12 +36,17 @@ class ChallengeModes {
 		});
 
 		this.playersUsingBanner = [];
-		this.enlistedPlayers = {};
+		this.loadCharacters();
 		this.registerBannerEvents();
 		this.registerPlayerEvents();
 	}
 
 	private checkEligible(player: Player) {
+		// Check if a challenge is already active
+		if (this.isPlayerEnlisted(player)) {
+			return "CHALLENGEACTIVE";
+		}
+
 		// Check level and xp
 		if (player.GetLevel() > 1 || player.GetXP() > 0) {
 			return "EXP";
@@ -90,17 +98,20 @@ class ChallengeModes {
 			return "MAIL";
 		}
 
-		// Check if a challenge is already active
-		if (this.isPlayerEnlisted(player)) {
-			return "CHALLENGEACTIVE";
-		}
-
 		// Make sure the player is still in range from the banner
 		if (!this.isPlayerInRangeFromBanner(player)) {
 			return "RANGE";
 		}
 
 		return true;
+	}
+
+	private loadCharacters() {
+		this.characters = new LuaMap<string, Character>();
+
+		for (const char of Character.getAllAlive()) {
+			this.characters.set(char.guid.toString(), char);
+		}
 	}
 
 	private registerBannerEvents() {
@@ -167,6 +178,13 @@ class ChallengeModes {
 			return;
 		}
 
+		const char = this.characters.get(player.GetGUID().toString());
+		char.dead = true;
+		char.diedLevel = player.GetLevel();
+		char.diedOn = GetGameTime();
+		char.save();
+		this.characters.delete(player.GetGUID().toString());
+
 		RunCommand(`character erase ${player.GetName()}`);
 	}
 
@@ -183,7 +201,10 @@ class ChallengeModes {
 			return;
 		}
 
-		this.enlistedPlayers[player.GetGUID().toString()] = challenge;
+		const char = new Character(player.GetGUID(), player.GetName(), challenge);
+		this.characters.set(player.GetGUID().toString(), char);
+		char.save();
+
 		AIO.Handle(player, this.channelName, "Enlisted", EChallengeMode[challenge]);
 
 		// TODO: remove from group if members are not in the same challenge
@@ -211,8 +232,9 @@ class ChallengeModes {
 	}
 
 	private isPlayerEnlisted(player: Player): boolean {
-		return player.GetGUID().toString() in this.enlistedPlayers;
+		return this.characters.has(player.GetGUID().toString());
 	}
 }
 
+Config.read();
 new ChallengeModes();

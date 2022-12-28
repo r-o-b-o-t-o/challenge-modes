@@ -373,8 +373,10 @@ end
 function Handlers.OpenBannerUI(player, eligible)
 	if eligible ~= true then
 		local errTxt = ""
-		if eligible == "EXP" then
-			errTxt = "Only available to characters with no experience points.\nCreate a fresh character to start the challenge."
+		if eligible == "CHALLENGEACTIVE" then
+			errTxt = "You have already accepted a challenge."
+		elseif eligible == "EXP" then
+			errTxt = "Only available to level 1 characters with no experience points.\nCreate a fresh character to start the challenge."
 		elseif eligible == "ITEMS" then
 			errTxt = "You possess items that were not included in your starting equipment.\nGet rid of them or create a fresh character to start the challenge."
 		elseif eligible == "MONEY" then
@@ -385,8 +387,6 @@ function Handlers.OpenBannerUI(player, eligible)
 			errTxt = "This character has died before...\nCreate a fresh character to start the challenge."
 		elseif eligible == "RANGE" then
 			errTxt = "You are too far away."
-		elseif eligible == "CHALLENGEACTIVE" then
-			errTxt = "You have already accepted a challenge."
 		end
 
 		for _, btn in pairs(scrollButtons) do

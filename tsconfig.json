@@ -24,7 +24,7 @@
 	"exclude": ["lib/**/*.lua"],
 	"tstl": {
 		"noResolvePaths": ["AIO"],
-		"luaBundleEntry": "server/challengeModes.ts",
+		"luaBundleEntry": "server/ChallengeModes.ts",
 		"luaBundle": "challengeModes.lua"
 	}
 }
