@@ -110,7 +110,7 @@ class ChallengeModes {
 	private loadCharacters() {
 		this.characters = new LuaMap<string, Character>();
 
-		for (const char of Character.getAllAlive()) {
+		for (const char of Character.getAll(false, false)) {
 			this.characters.set(char.guid.toString(), char);
 		}
 	}
@@ -140,6 +140,7 @@ class ChallengeModes {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_INIT_TRADE, (...args) => this.onPlayerTrade(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_USE_ITEM, (...args) => this.onPlayerCanUseItem(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_LEARN_TALENTS, (...args) => this.onPlayerLearnTalent(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_LEVEL_CHANGE, (...args) => this.onPlayerChangeLevel(...args));
 	}
 
 	private registerGroupEvents() {
@@ -187,10 +188,11 @@ class ChallengeModes {
 			return;
 		}
 
-		const char = this.characters.get(player.GetGUID().toString());
+		const char = this.getCharacter(player);
 		char.dead = true;
 		char.diedLevel = player.GetLevel();
 		char.diedOn = GetGameTime();
+		char.name = player.GetName();
 		char.save();
 		this.characters.delete(player.GetGUID().toString());
 
@@ -199,7 +201,7 @@ class ChallengeModes {
 
 	private onPlayerGiveXP(event: PlayerEvents, player: Player, amount: number, victim: Unit): number {
 		if (this.isPlayerEnlisted(player)) {
-			const char = this.characters.get(player.GetGUID().toString());
+			const char = this.getCharacter(player);
 			if (char.challenge === EChallengeMode.Bloodthirsty && (victim === null || victim.ToPlayer() !== null)) {
 				return 0;
 			}
@@ -212,7 +214,7 @@ class ChallengeModes {
 	}
 
 	private onPlayerCanUseItem(event: PlayerEvents, player: Player, itemEntry: number): InventoryResult {
-		const character = this.characters.get(player.GetGUID().toString());
+		const character = this.getCharacter(player);
 		const itemTemplate = GetItemTemplate(itemEntry);
 		if (character?.challenge === EChallengeMode.Ironman && itemTemplate?.GetQuality() > 1) {
 			// Prevent using items better than Common in Ironman mode
@@ -223,10 +225,24 @@ class ChallengeModes {
 	}
 
 	private onPlayerLearnTalent(event: PlayerEvents, player: Player, talent: number, rank: number, spell: number) {
-		const character = this.characters.get(player.GetGUID().toString());
+		const character = this.getCharacter(player);
 		if (character?.challenge === EChallengeMode.Ironman) {
 			// Reset talents instantly for Ironman players if they try to use their points
 			player.ResetTalents(true);
+		}
+	}
+
+	private onPlayerChangeLevel(event: PlayerEvents, player: Player, oldLevel: number) {
+		if (!this.isPlayerEnlisted(player)) {
+			return;
+		}
+
+		if (player.GetLevel() === Config.instance.maxLevel) {
+			const character = this.getCharacter(player);
+			character.completed = true;
+			character.name = player.GetName();
+			character.save();
+			this.characters.delete(player.GetGUID().toString());
 		}
 	}
 
@@ -307,6 +323,10 @@ class ChallengeModes {
 
 	private isPlayerEnlisted(player: Player): boolean {
 		return this.characters.has(player.GetGUID().toString());
+	}
+
+	private getCharacter(player: Player): Character {
+		return this.characters.get(player.GetGUID().toString());
 	}
 }
 

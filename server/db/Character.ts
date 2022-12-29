@@ -36,19 +36,11 @@ export class Character {
 		print(`guid: ${this.guid}, name: "${this.name}", challenge: ${this.challenge}, completed: ${this.completed ? 1 : 0}, dead: ${this.dead ? 1 : 0}, diedLevel: ${this.diedLevel ?? "null"}, diedOn: ${this.diedOn ?? "null"}`);
 	}
 
-	public static getAll(): Character[] {
+	public static getAll(includeDead = true, includeCompleted = true): Character[] {
 		const res = CharDBQuery(`
 			SELECT guid, name, challenge, completed, dead, died_level, died_on
 			FROM ${Character.table()}
-		`);
-		return Database.getRowsFromQuery(res).map(row => this.createFromRow(row));
-	}
-
-	public static getAllAlive(): Character[] {
-		const res = CharDBQuery(`
-			SELECT guid, name, challenge, completed, dead, died_level, died_on
-			FROM ${Character.table()}
-			WHERE dead = 0
+			WHERE dead = ${includeDead ? 1 : 0} AND completed = ${includeCompleted ? 1 : 0}
 		`);
 		return Database.getRowsFromQuery(res).map(row => this.createFromRow(row));
 	}
