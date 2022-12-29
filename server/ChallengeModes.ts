@@ -137,6 +137,7 @@ class ChallengeModes {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_REPOP, (...args) => this.onPlayerRepop(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_RESURRECT, (...args) => this.onPlayerResurrect(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_GIVE_XP, (...args) => this.onPlayerGiveXP(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_INIT_TRADE, (...args) => this.onPlayerTrade(...args));
 	}
 
 	private registerGroupEvents() {
@@ -202,6 +203,10 @@ class ChallengeModes {
 			}
 		}
 		return amount;
+	}
+
+	private onPlayerTrade(event: PlayerEvents, player: Player, target: Player): boolean {
+		return !this.isPlayerEnlisted(player) && !this.isPlayerEnlisted(target);
 	}
 
 	private onGroupAddMember(event: GroupEvents, group: Group, memberGuid: number) {
