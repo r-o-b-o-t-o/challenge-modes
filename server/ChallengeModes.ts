@@ -227,7 +227,7 @@ class ChallengeModes {
 					const player = GetPlayerByGUID(memberGuid);
 					if (player && player.IsInGroup()) {
 						player.GetGroup().RemoveMember(memberGuid, RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
-						player.SendChatMessageToPlayer(ChatMsg.CHAT_MSG_SYSTEM, Language.LANG_UNIVERSAL, `You can only party up with ${EChallengeMode[memberCharacter.challenge]} players.`, player);
+						player.SendNotification(`You can only party up with ${EChallengeMode[memberCharacter.challenge]} players.`);
 					}
 				}, 500);
 				break;
@@ -244,7 +244,7 @@ class ChallengeModes {
 		}
 
 		if (this.checkEligible(player) !== true) {
-			player.SendChatMessageToPlayer(ChatMsg.CHAT_MSG_SYSTEM, Language.LANG_UNIVERSAL, `Could not enable the ${EChallengeMode[challenge]} challenge.`, player);
+			player.SendNotification(`Could not enable the ${EChallengeMode[challenge]} challenge.`);
 			return;
 		}
 
