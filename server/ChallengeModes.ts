@@ -209,25 +209,27 @@ class ChallengeModes {
 		return !this.isPlayerEnlisted(player) && !this.isPlayerEnlisted(target);
 	}
 
-	private onGroupAddMember(event: GroupEvents, group: Group, memberGuid: number) {
+	private onGroupAddMember(event: GroupEvents, group: Group, newMemberGuid: number) {
 		if (group.GetGroupType() !== GroupType.GROUPTYPE_NORMAL && group.GetGroupType() !== GroupType.GROUPTYPE_RAID) {
 			return;
 		}
-		if (!this.characters.has(memberGuid.toString())) {
-			return;
-		}
-		const memberCharacter = this.characters.get(memberGuid.toString());
 
+		const newMemberCharacter = this.characters.get(newMemberGuid.toString());
 		for (const member of group.GetMembers()) {
-			if (!this.isPlayerEnlisted(member) || this.characters.get(member.GetGUID().toString()).challenge !== memberCharacter.challenge) {
-				// Remove from group if a member is not running challenges or a different one than the new member
+			const memberCharacter = this.characters.get(member.GetGUID().toString());
+			if (newMemberCharacter?.challenge !== memberCharacter?.challenge) {
+				// Remove the new member from the group if they are not running the same challenge
 				CreateLuaEvent(() => {
 					// The ON_MEMBER_ADD group event triggers before ON_CREATE, so let's not disband the group immediately,
 					// this would cause issues by destroying the group while it's still forming
-					const player = GetPlayerByGUID(memberGuid);
+					const player = GetPlayerByGUID(newMemberGuid);
 					if (player && player.IsInGroup()) {
-						player.GetGroup().RemoveMember(memberGuid, RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
-						player.SendNotification(`You can only party up with ${EChallengeMode[memberCharacter.challenge]} players.`);
+						player.GetGroup().RemoveMember(newMemberGuid, RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
+						if (newMemberCharacter) {
+							player.SendNotification(`You can only party up with ${EChallengeMode[newMemberCharacter.challenge]} players.`);
+						} else {
+							player.SendNotification("You cannot party up with players running Challenge Modes.");
+						}
 					}
 				}, 500);
 				break;
