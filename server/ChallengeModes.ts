@@ -139,6 +139,7 @@ class ChallengeModes {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_GIVE_XP, (...args) => this.onPlayerGiveXP(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_INIT_TRADE, (...args) => this.onPlayerTrade(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_USE_ITEM, (...args) => this.onPlayerCanUseItem(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_LEARN_TALENTS, (...args) => this.onPlayerLearnTalent(...args));
 	}
 
 	private registerGroupEvents() {
@@ -219,6 +220,14 @@ class ChallengeModes {
 		}
 
 		return InventoryResult.EQUIP_ERR_OK;
+	}
+
+	private onPlayerLearnTalent(event: PlayerEvents, player: Player, talent: number, rank: number, spell: number) {
+		const character = this.characters.get(player.GetGUID().toString());
+		if (character?.challenge === EChallengeMode.Ironman) {
+			// Reset talents instantly for Ironman players if they try to use their points
+			player.ResetTalents(true);
+		}
 	}
 
 	private onGroupAddMember(event: GroupEvents, group: Group, newMemberGuid: number) {
