@@ -207,7 +207,11 @@ class ChallengeModes {
 
 		AIO.Handle(player, this.channelName, "Enlisted", EChallengeMode[challenge]);
 
-		// TODO: remove from group if members are not in the same challenge
+		if (player.IsInGroup()) {
+			// Remove from group
+			const group = player.GetGroup();
+			group.RemoveMember(player.GetGUID(), RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
+		}
 	}
 
 	private closeBannerUI(player: Player) {
