@@ -39,6 +39,7 @@ class ChallengeModes {
 		this.loadCharacters();
 		this.registerBannerEvents();
 		this.registerPlayerEvents();
+		this.registerGroupEvents();
 	}
 
 	private checkEligible(player: Player) {
@@ -137,6 +138,10 @@ class ChallengeModes {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_RESURRECT, (...args) => this.onPlayerResurrect(...args));
 	}
 
+	private registerGroupEvents() {
+		RegisterGroupEvent(GroupEvents.GROUP_EVENT_ON_MEMBER_ADD, (...args) => this.onGroupAddMember(...args));
+	}
+
 	private onAllianceBannerUse(event: GameObjectEvents, gobj: GameObject, player: Player) {
 		if (player.IsAlliance()) {
 			this.onBannerUse(gobj, player);
@@ -186,6 +191,32 @@ class ChallengeModes {
 		this.characters.delete(player.GetGUID().toString());
 
 		RunCommand(`character erase ${player.GetName()}`);
+	}
+
+	private onGroupAddMember(event: GroupEvents, group: Group, memberGuid: number) {
+		if (group.GetGroupType() !== GroupType.GROUPTYPE_NORMAL && group.GetGroupType() !== GroupType.GROUPTYPE_RAID) {
+			return;
+		}
+		if (!this.characters.has(memberGuid.toString())) {
+			return;
+		}
+		const memberCharacter = this.characters.get(memberGuid.toString());
+
+		for (const member of group.GetMembers()) {
+			if (!this.isPlayerEnlisted(member) || this.characters.get(member.GetGUID().toString()).challenge !== memberCharacter.challenge) {
+				// Remove from group if a member is not running challenges or a different one than the new member
+				CreateLuaEvent(() => {
+					// The ON_MEMBER_ADD group event triggers before ON_CREATE, so let's not disband the group immediately,
+					// this would cause issues by destroying the group while it's still forming
+					const player = GetPlayerByGUID(memberGuid);
+					if (player && player.IsInGroup()) {
+						player.GetGroup().RemoveMember(memberGuid, RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
+						player.SendChatMessageToPlayer(ChatMsg.CHAT_MSG_SYSTEM, Language.LANG_UNIVERSAL, `You can only party up with ${EChallengeMode[memberCharacter.challenge]} players.`, player);
+					}
+				}, 500);
+				break;
+			}
+		}
 	}
 
 	private enlist(player: Player, challenge: EChallengeMode) {
