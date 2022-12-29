@@ -136,6 +136,7 @@ class ChallengeModes {
 	private registerPlayerEvents() {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_REPOP, (...args) => this.onPlayerRepop(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_RESURRECT, (...args) => this.onPlayerResurrect(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_GIVE_XP, (...args) => this.onPlayerGiveXP(...args));
 	}
 
 	private registerGroupEvents() {
@@ -191,6 +192,16 @@ class ChallengeModes {
 		this.characters.delete(player.GetGUID().toString());
 
 		RunCommand(`character erase ${player.GetName()}`);
+	}
+
+	private onPlayerGiveXP(event: PlayerEvents, player: Player, amount: number, victim: Unit): number {
+		if (this.isPlayerEnlisted(player)) {
+			const char = this.characters.get(player.GetGUID().toString());
+			if (char.challenge === EChallengeMode.Bloodthirsty && (victim === null || victim.ToPlayer() !== null)) {
+				return 0;
+			}
+		}
+		return amount;
 	}
 
 	private onGroupAddMember(event: GroupEvents, group: Group, memberGuid: number) {
