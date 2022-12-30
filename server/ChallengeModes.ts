@@ -141,6 +141,7 @@ class ChallengeModes {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_USE_ITEM, (...args) => this.onPlayerCanUseItem(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_LEARN_TALENTS, (...args) => this.onPlayerLearnTalent(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_LEVEL_CHANGE, (...args) => this.onPlayerChangeLevel(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_SEND_MAIL, (...args) => this.onPlayerSendMail(...args));
 	}
 
 	private registerGroupEvents() {
@@ -244,6 +245,19 @@ class ChallengeModes {
 			character.save();
 			this.characters.delete(player.GetGUID().toString());
 		}
+	}
+
+	private onPlayerSendMail(event: PlayerEvents, player: Player, receiverGuid: number, mailbox: number, subject: string, body: string, money: number, cod: number, item: Item): boolean {
+		if (this.characters.has(receiverGuid.toString()) && (money > 0 || item !== null)) {
+			// Prevent from sending the mail if the target character is running a challenge and the mail contains money or items
+			return false;
+		}
+		if (this.isPlayerEnlisted(player) && cod > 0) {
+			// Prevent the player from getting money from CODs if they're running a challenge
+			return false;
+		}
+
+		return true;
 	}
 
 	private onGroupAddMember(event: GroupEvents, group: Group, newMemberGuid: number) {
