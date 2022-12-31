@@ -142,6 +142,7 @@ class ChallengeModes {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_LEARN_TALENTS, (...args) => this.onPlayerLearnTalent(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_LEVEL_CHANGE, (...args) => this.onPlayerChangeLevel(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_SEND_MAIL, (...args) => this.onPlayerSendMail(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_JOIN_LFG, (...args) => this.onPlayerQueueRdf(...args));
 	}
 
 	private registerGroupEvents() {
@@ -255,6 +256,37 @@ class ChallengeModes {
 		if (this.isPlayerEnlisted(player) && cod > 0) {
 			// Prevent the player from getting money from CODs if they're running a challenge
 			return false;
+		}
+
+		return true;
+	}
+
+	private onPlayerQueueRdf(event: PlayerEvents, player: Player, roles: number, dungeons: number[], comment: string): boolean {
+		if (!this.isPlayerEnlisted(player)) {
+			return true;
+		}
+
+		const char = this.getCharacter(player);
+
+		if (!player.IsInGroup()) {
+			player.SendNotification(`You cannot queue alone when running the ${EChallengeMode[char.challenge]} Challenge.`);
+			return false;
+		}
+
+		const group = player.GetGroup();
+		if (group.GetMembersCount() !== 5) {
+			player.SendNotification(`You can only queue with a full group of 5 players when running the ${EChallengeMode[char.challenge]} Challenge.`);
+			return false;
+		}
+
+		for (const member of group.GetMembers()) {
+			const memberChar = this.getCharacter(member);
+
+			if (memberChar?.challenge !== char.challenge) {
+				// Shouldn't be possible because of the group invite check, but better safe than sorry
+				player.SendNotification(`You can only queue with other ${EChallengeMode[char.challenge]} players.`);
+				return false;
+			}
 		}
 
 		return true;
