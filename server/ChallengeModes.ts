@@ -18,6 +18,13 @@ interface IPlayerUsingBanner {
 class ChallengeModes {
 	// Constants
 	private readonly ACHIEVEMENT_CRITERIA_DEATHS = 111;
+	private readonly MSG_AUCTION_HELLO = 0x255;
+	private readonly CMSG_AUCTION_SELL_ITEM = 0x256;
+	private readonly CMSG_AUCTION_PLACE_BID = 0x25A;
+	private readonly CMSG_GUILD_BANKER_ACTIVATE = 0x3E6;
+	private readonly CMSG_GUILD_BANK_SWAP_ITEMS = 0x3E9;
+	private readonly CMSG_GUILD_BANK_DEPOSIT_MONEY = 0x3EC;
+	private readonly CMSG_GUILD_BANK_WITHDRAW_MONEY = 0x3ED;
 
 	// Ids
 	private readonly allianceGobjEntry = 2000000;
@@ -40,6 +47,7 @@ class ChallengeModes {
 		this.registerBannerEvents();
 		this.registerPlayerEvents();
 		this.registerGroupEvents();
+		this.registerPacketEvents();
 	}
 
 	private checkEligible(player: Player) {
@@ -147,6 +155,16 @@ class ChallengeModes {
 
 	private registerGroupEvents() {
 		RegisterGroupEvent(GroupEvents.GROUP_EVENT_ON_MEMBER_ADD, (...args) => this.onGroupAddMember(...args));
+	}
+
+	private registerPacketEvents() {
+		const opcodes = [
+			this.MSG_AUCTION_HELLO, this.CMSG_AUCTION_SELL_ITEM, this.CMSG_AUCTION_PLACE_BID,
+			this.CMSG_GUILD_BANKER_ACTIVATE, this.CMSG_GUILD_BANK_SWAP_ITEMS, this.CMSG_GUILD_BANK_DEPOSIT_MONEY, this.CMSG_GUILD_BANK_WITHDRAW_MONEY,
+		];
+		for (const opcode of opcodes) {
+			RegisterPacketEvent(opcode, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.cancelPacket(...args));
+		}
 	}
 
 	private onAllianceBannerUse(event: GameObjectEvents, gobj: GameObject, player: Player) {
@@ -318,6 +336,10 @@ class ChallengeModes {
 				break;
 			}
 		}
+	}
+
+	private cancelPacket(event: PacketEvents, packet: WorldPacket, player: Player): boolean {
+		return !this.isPlayerEnlisted(player);
 	}
 
 	private enlist(player: Player, challenge: EChallengeMode) {
