@@ -118,7 +118,7 @@ class ChallengeModes {
 	private loadCharacters() {
 		this.characters = new LuaMap<string, Character>();
 
-		for (const char of Character.getAll(false, false)) {
+		for (const char of Character.getAllActive()) {
 			this.characters.set(char.guid.toString(), char);
 		}
 	}
@@ -151,6 +151,8 @@ class ChallengeModes {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_LEVEL_CHANGE, (...args) => this.onPlayerChangeLevel(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_SEND_MAIL, (...args) => this.onPlayerSendMail(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_JOIN_LFG, (...args) => this.onPlayerQueueRdf(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_KILLED_BY_CREATURE, (...args) => this.onPlayerKilledByCreature(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_KILL_PLAYER, (...args) => this.onPlayerPvPKilled(...args));
 	}
 
 	private registerGroupEvents() {
@@ -209,10 +211,8 @@ class ChallengeModes {
 		}
 
 		const char = this.getCharacter(player);
-		char.dead = true;
-		char.diedLevel = player.GetLevel();
-		char.diedOn = GetGameTime();
 		char.name = player.GetName();
+		char.charDeleted = true;
 		char.save();
 		this.characters.delete(player.GetGUID().toString());
 
@@ -308,6 +308,40 @@ class ChallengeModes {
 		}
 
 		return true;
+	}
+
+	private onPlayerKilledByCreature(event: PlayerEvents, killer: Unit, player: Player) {
+		if (!this.isPlayerEnlisted(player)) {
+			return;
+		}
+
+		const char = this.getCharacter(player);
+		SendWorldMessage(`${player.GetName()} was killed by ${killer.GetName()} at level ${player.GetLevel()} (${EChallengeMode[char.challenge]} Challenge).`);
+
+		char.dead = true;
+		char.diedLevel = player.GetLevel();
+		char.diedOn = GetGameTime();
+		char.name = player.GetName();
+		char.save();
+	}
+
+	private onPlayerPvPKilled(event: PlayerEvents, killer: Player, killed: Player) {
+		if (!this.isPlayerEnlisted(killed)) {
+			return;
+		}
+
+		const char = this.getCharacter(killed);
+		if (killer.GetGUID() === killed.GetGUID()) {
+			SendWorldMessage(`${killed.GetName()} died at level ${killed.GetLevel()} (${EChallengeMode[char.challenge]} Challenge).`);
+		} else {
+			SendWorldMessage(`${killed.GetName()} was killed by player ${killer.GetName()} at level ${killed.GetLevel()} (${EChallengeMode[char.challenge]} Challenge).`);
+		}
+
+		char.dead = true;
+		char.diedLevel = killed.GetLevel();
+		char.diedOn = GetGameTime();
+		char.name = killed.GetName();
+		char.save();
 	}
 
 	private onGroupAddMember(event: GroupEvents, group: Group, newMemberGuid: number) {
