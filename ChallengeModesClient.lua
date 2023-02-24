@@ -177,9 +177,10 @@ local function CreateMainWindowScroll(x, title, text, img, btnTextures)
 end
 
 scrollBtnTextures = nil
-scrollImg2 = "Interface/ChallengeModes/answer-warfronts-horde-Raider-small"
+scrollImg1 = "Interface/ChallengeModes/Hardcore" .. faction
+scrollImg2 = "Interface/ChallengeModes/Ironman" .. faction
+scrollImg3 = "Interface/ChallengeModes/Bloodthirsty" .. faction
 if faction == "Alliance" then
-	scrollImg2 = "Interface/ChallengeModes/answer-warfronts-alliance-Knight-small"
 	scrollBtnTextures = {
 		Normal = "Interface/ChallengeModes/Glue-Panel-Button-Up-Blue",
 		Highlight = "Interface/ChallengeModes/Glue-Panel-Button-Highlight-Blue",
@@ -188,9 +189,9 @@ if faction == "Alliance" then
 end
 
 -- Scrolls
-challengeModes.mainWindow.scroll1Button = CreateMainWindowScroll(-214, "Hardcore Challenge", "In this mode, your demise will bring a permanent end to your adventure.\n\nIf you have what it takes and progress to the maximum level without dying, you will find unique rewards and eternal glory at the end of this challenge!", "Interface/ChallengeModes/answer-ChromieScenario-Chromie-small", scrollBtnTextures)
+challengeModes.mainWindow.scroll1Button = CreateMainWindowScroll(-214, "Hardcore Challenge", "In this mode, your demise will bring a permanent end to your adventure.\n\nIf you have what it takes and progress to the maximum level without dying, you will find unique rewards and eternal glory at the end of this challenge!", scrollImg1, scrollBtnTextures)
 challengeModes.mainWindow.scroll2Button = CreateMainWindowScroll(0, "Ironman Challenge", "Similarly to the Hardcore Challenge, this mode will bring an end to your adventure if you were to perish. Additionally, you cannot use talents and are allowed to equip only |CFF9D9D9DPoor|C" .. textColor .. " and |CFFFFFFFFCommon|C" .. textColor .. " equipment.\n\nArmed only with nerves of steel and unshakable resolve, reach the maximum level to attain unique rewards and eternal glory!", scrollImg2, scrollBtnTextures)
-challengeModes.mainWindow.scroll3Button = CreateMainWindowScroll(214, "Bloodthirsty Challenge", "In the same vein as the Hardcore Challenge, this mode will end your adventure for good upon your death. You can also only gain experience by defeating creatures.\n\nMake it to the maximum level in brutal and restless fashion in order to find unique rewards and eternal glory!", "Interface/ChallengeModes/answer-ChromieScenario-Chromie-small", scrollBtnTextures)
+challengeModes.mainWindow.scroll3Button = CreateMainWindowScroll(214, "Bloodthirsty Challenge", "In the same vein as the Hardcore Challenge, this mode will end your adventure for good upon your death. You can also only gain experience by defeating creatures.\n\nMake it to the maximum level in brutal and restless fashion in order to find unique rewards and eternal glory!", scrollImg3, scrollBtnTextures)
 
 -- Title
 CreateTexture(512 * scaleX, 85 * scaleY, atlas.TitleMiddle, "BORDER", "TOP", 0, -34)
