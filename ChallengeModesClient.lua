@@ -371,6 +371,41 @@ for _, btn in pairs(scrollButtons) do
 	end)
 end
 
+
+-- Death window
+challengeModes.deathWindow = CreateFrame("Frame", "ChallengeModesDeathWindow", UIParent)
+challengeModes.deathWindow:SetSize(390 * scaleX, 446 * scaleY)
+challengeModes.deathWindow:EnableMouse(true)
+challengeModes.deathWindow:SetPoint("CENTER", 0, 0)
+challengeModes.deathWindow:Hide()
+
+CreateTexture(390 * scaleX, 446 * scaleY, { 0.0, 0.76171875, 0.0, 0.87109375 }, "BACKGROUND", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBackground", challengeModes.deathWindow)
+CreateTexture(390 * scaleX, 446 * scaleY, { 0.0, 0.76171875, 0.0, 0.87109375 }, "BORDER", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBorder", challengeModes.deathWindow)
+CreateTexture(187 * scaleX, 187 * scaleY, { 0.0, 1.0, 0.0, 1.0 }, "ARTWORK", "TOP", 0, -60, "Interface/ChallengeModes/Graveyard" .. random(1, 6), challengeModes.deathWindow)
+CreateTexture(207 * scaleX, 207 * scaleY, { 0.0, 0.80859375, 0.0, 0.80859375 }, "OVERLAY", "TOP", 0, -60 + 9 * scaleY, "Interface/ChallengeModes/SquareBorder", challengeModes.deathWindow)
+
+challengeModes.deathWindow.title = challengeModes.deathWindow:CreateFontString()
+challengeModes.deathWindow.title:SetPoint("TOP", 0, -20)
+challengeModes.deathWindow.title:SetFont("Fonts\\MORPHEUS.TTF", 22)
+challengeModes.deathWindow.title:SetText("YOU DIED")
+
+challengeModes.deathWindow.text = challengeModes.deathWindow:CreateFontString()
+challengeModes.deathWindow.text:SetPoint("BOTTOM", 0, 80)
+challengeModes.deathWindow.text:SetFont("Fonts\\FRIZQT__.TTF", 16)
+
+challengeModes.deathWindow.button = CreateFrame("Button", nil, challengeModes.deathWindow, "UIPanelButtonTemplate")
+challengeModes.deathWindow.button:SetSize(120, 40)
+challengeModes.deathWindow.button:SetPoint("BOTTOM", 0, 24)
+challengeModes.deathWindow.button:EnableMouse(true)
+challengeModes.deathWindow.buttonText = challengeModes.deathWindow.button:CreateFontString()
+challengeModes.deathWindow.buttonText:SetFont("Fonts\\MORPHEUS.TTF", 18, "OUTLINE")
+challengeModes.deathWindow.buttonText:SetShadowOffset(1, -1)
+challengeModes.deathWindow.button:SetFontString(challengeModes.deathWindow.buttonText)
+challengeModes.deathWindow.button:SetText("Logout")
+challengeModes.deathWindow.button:SetScript("OnClick", function()
+	RepopMe()
+end)
+
 function Handlers.OpenBannerUI(player, eligible)
 	if eligible ~= true then
 		local errTxt = ""
@@ -467,6 +502,24 @@ function Handlers.Enlisted(player, challenge)
 					end
 				end)
 				animGroup:Play()
+			end
+		end
+	end)
+end
+
+function Handlers.OpenDeathUI(player, challenge, playedTime, rank)
+	PlaySoundFile("Sound\\Interface\\PVPWARNING.wav")
+	local timer = 1.65
+	challengeModes.deathWindow:SetAlpha(0)
+	challengeModes.deathWindow:Show()
+	challengeModes.deathWindow.text:SetText(UnitName("player") .. "'s journey ends here\nDied at level " .. UnitLevel("player") .. "\nPlayed for " .. playedTime .. "\n" .. challenge .. " rank: #" .. rank)
+	challengeModes.deathWindow:SetScript("OnUpdate", function(self, dt)
+		if timer > 0 then
+			timer = timer - dt
+
+			if timer <= 0 then
+				challengeModes.deathWindow:SetScript("OnUpdate", nil)
+				challengeModes.deathWindow:SetAlpha(1)
 			end
 		end
 	end)

@@ -261,6 +261,7 @@ class ChallengeModes {
 			const character = this.getCharacter(player);
 			character.completed = true;
 			character.name = player.GetName();
+			character.playedTime = player.GetTotalPlayedTime();
 			character.save();
 			this.characters.delete(player.GetGUID().toString());
 		}
@@ -318,11 +319,7 @@ class ChallengeModes {
 		const char = this.getCharacter(player);
 		SendWorldMessage(`${player.GetName()} was killed by ${killer.GetName()} at level ${player.GetLevel()} (${EChallengeMode[char.challenge]} Challenge).`);
 
-		char.dead = true;
-		char.diedLevel = player.GetLevel();
-		char.diedOn = GetGameTime();
-		char.name = player.GetName();
-		char.save();
+		this.onPlayerDied(player);
 	}
 
 	private onPlayerPvPKilled(event: PlayerEvents, killer: Player, killed: Player) {
@@ -337,11 +334,20 @@ class ChallengeModes {
 			SendWorldMessage(`${killed.GetName()} was killed by player ${killer.GetName()} at level ${killed.GetLevel()} (${EChallengeMode[char.challenge]} Challenge).`);
 		}
 
+		this.onPlayerDied(killed);
+	}
+
+	private onPlayerDied(player: Player) {
+		const playedTime = player.GetTotalPlayedTime();
+		const char = this.getCharacter(player);
 		char.dead = true;
-		char.diedLevel = killed.GetLevel();
+		char.diedLevel = player.GetLevel();
 		char.diedOn = GetGameTime();
-		char.name = killed.GetName();
+		char.name = player.GetName();
+		char.playedTime = playedTime - player.GetLevelPlayedTime();
 		char.save();
+
+		AIO.Handle(player, this.channelName, "OpenDeathUI", EChallengeMode[char.challenge], this.formatPlayedTime(playedTime), char.getRank());
 	}
 
 	private onGroupAddMember(event: GroupEvents, group: Group, newMemberGuid: number) {
@@ -429,6 +435,17 @@ class ChallengeModes {
 
 	private getCharacter(player: Player): Character {
 		return this.characters.get(player.GetGUID().toString());
+	}
+
+	private formatPlayedTime(seconds: number): string {
+		const d = Math.floor(seconds / (3600 * 24));
+		const h = Math.floor(seconds % (3600 * 24) / 3600);
+		const m = Math.floor(seconds % 3600 / 60);
+
+		const days = d > 0 ? d + "d " : "";
+		const hours = h > 0 ? h + "h " : "";
+		const minutes = m + "m";
+		return days + hours + minutes;
 	}
 }
 
