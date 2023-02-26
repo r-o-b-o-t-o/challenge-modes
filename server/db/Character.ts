@@ -1,6 +1,6 @@
 import { Config } from "../Config";
 import { Database } from "./Database";
-import { EChallengeMode } from "../ChallengeModes";
+import { allChallengeModes, EChallengeMode } from "../EChallengeMode";
 
 export class Character {
 	public guid: number;
@@ -23,6 +23,37 @@ export class Character {
 		this.diedOn = diedOn;
 		this.charDeleted = charDeleted;
 		this.playedTime = playedTime;
+	}
+
+	public isHardcore(): boolean {
+		return this.hasChallenge(EChallengeMode.Hardcore);
+	}
+
+	public isIronman(): boolean {
+		return this.hasChallenge(EChallengeMode.Ironman);
+	}
+
+	public isBloodthirsty(): boolean {
+		return this.hasChallenge(EChallengeMode.Bloodthirsty);
+	}
+
+	public hasChallenge(challenge: EChallengeMode): boolean {
+		return bit32.band(this.challenge, challenge) === challenge;
+	}
+
+	public addChallenge(challenge: EChallengeMode) {
+		this.challenge = bit32.bor(this.challenge, challenge);
+	}
+
+	public removeChallenge(challenge: EChallengeMode) {
+		this.challenge = bit32.band(this.challenge, bit32.bnot(challenge));
+	}
+
+	public formatChallenges(): string {
+		const challenges = allChallengeModes()
+			.map(challenge => this.hasChallenge(challenge) ? EChallengeMode[challenge] : "")
+			.filter(str => str !== "");
+		return challenges.join(" + ");
 	}
 
 	public save(): void {

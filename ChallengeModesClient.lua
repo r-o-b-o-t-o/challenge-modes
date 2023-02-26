@@ -190,8 +190,8 @@ end
 
 -- Scrolls
 challengeModes.mainWindow.scroll1Button = CreateMainWindowScroll(-214, "Hardcore Challenge", "In this mode, your demise will bring a permanent end to your adventure.\n\nIf you have what it takes and progress to the maximum level without dying, you will find unique rewards and eternal glory at the end of this challenge!", scrollImg1, scrollBtnTextures)
-challengeModes.mainWindow.scroll2Button = CreateMainWindowScroll(0, "Ironman Challenge", "Similarly to the Hardcore Challenge, this mode will bring an end to your adventure if you were to perish. Additionally, you cannot use talents and are allowed to equip only |CFF9D9D9DPoor|C" .. textColor .. " and |CFFFFFFFFCommon|C" .. textColor .. " equipment.\n\nArmed only with nerves of steel and unshakable resolve, reach the maximum level to attain unique rewards and eternal glory!", scrollImg2, scrollBtnTextures)
-challengeModes.mainWindow.scroll3Button = CreateMainWindowScroll(214, "Bloodthirsty Challenge", "In the same vein as the Hardcore Challenge, this mode will end your adventure for good upon your death. You can also only gain experience by defeating creatures.\n\nMake it to the maximum level in brutal and restless fashion in order to find unique rewards and eternal glory!", scrollImg3, scrollBtnTextures)
+challengeModes.mainWindow.scroll2Button = CreateMainWindowScroll(0, "Ironman Challenge", "In this mode, you cannot use talents and are allowed to equip only |CFF9D9D9DPoor|C" .. textColor .. " and |CFFFFFFFFCommon|C" .. textColor .. " equipment.\n\nArmed only with nerves of steel and unshakable resolve, reach the maximum level to attain unique rewards and eternal glory!", scrollImg2, scrollBtnTextures)
+challengeModes.mainWindow.scroll3Button = CreateMainWindowScroll(214, "Bloodthirsty Challenge", "In this mode, you can only gain experience by defeating creatures.\n\nMake it to the maximum level in brutal and restless fashion in order to find unique rewards and eternal glory!", scrollImg3, scrollBtnTextures)
 
 -- Title
 CreateTexture(512 * scaleX, 85 * scaleY, atlas.TitleMiddle, "BORDER", "TOP", 0, -34)
@@ -245,6 +245,7 @@ challengeModes.confirmWindow.title:SetPoint("TOP", 0, -30)
 challengeModes.confirmWindow.title:SetFont("Fonts\\FRIZQT__.TTF", 20)
 
 local confirmLinesY
+local confirmLinesGap
 local function CreateConfirmLineFrame()
 	local f = CreateFrame("Frame", nil, challengeModes.confirmWindow)
 	f:SetSize(challengeModes.confirmWindow:GetSize())
@@ -258,27 +259,27 @@ local confirmLineFrames = {
 	Bloodthirsty = CreateConfirmLineFrame(),
 }
 local function CreateConfirmXLine(text, parent)
-	CreateTexture(nil, nil, { 0, 1, 0, 1 }, "ARTWORK", "LEFT", 40, confirmLinesY, "Interface/GLUES/LOGIN/Glues-CheckBox-Check", parent)
+	CreateTexture(nil, nil, { 0, 1, 0, 1 }, "ARTWORK", "LEFT", 30, confirmLinesY, "Interface/GLUES/LOGIN/Glues-CheckBox-Check", parent)
 
 	local txt = parent:CreateFontString()
-	txt:SetPoint("LEFT", 64, confirmLinesY + 1)
+	txt:SetPoint("LEFT", 54, confirmLinesY + 1)
 	txt:SetFont("Fonts\\FRIZQT__.TTF", 13)
 	txt:SetText("|CFFCD0000" .. text .. "|r")
 	txt:SetShadowOffset(1, -1)
 
-	confirmLinesY = confirmLinesY - 20
+	confirmLinesY = confirmLinesY - confirmLinesGap
 end
 
 local function CreateConfirmOKLine(text, parent)
-	CreateTexture(nil, nil, { 0, 1, 0, 1 }, "ARTWORK", "LEFT", 37, confirmLinesY - 4, "Interface/AchievementFrame/UI-Achievement-Criteria-Check", parent)
+	CreateTexture(nil, nil, { 0, 1, 0, 1 }, "ARTWORK", "LEFT", 27, confirmLinesY - 4, "Interface/AchievementFrame/UI-Achievement-Criteria-Check", parent)
 
 	local txt = parent:CreateFontString()
-	txt:SetPoint("LEFT", 64, confirmLinesY)
+	txt:SetPoint("LEFT", 54, confirmLinesY)
 	txt:SetFont("Fonts\\FRIZQT__.TTF", 13)
 	txt:SetText("|CFF097000" .. text .. "|r")
 	txt:SetShadowOffset(1, -1)
 
-	confirmLinesY = confirmLinesY - 20
+	confirmLinesY = confirmLinesY - confirmLinesGap
 end
 
 challengeModes.confirmWindow.enlistButton = CreateFrame("Button", nil, challengeModes.confirmWindow, "UIPanelButtonTemplate")
@@ -318,40 +319,43 @@ for _, btn in pairs(scrollButtons) do
 	local challengeId
 	local challengeName
 	if btn == challengeModes.mainWindow.scroll1Button then
-		challengeId = 0
+		challengeId = 1
 		challengeName = "Hardcore"
 	elseif btn == challengeModes.mainWindow.scroll2Button then
-		challengeId = 1
+		challengeId = 2
 		challengeName = "Ironman"
 	else
-		challengeId = 2
+		challengeId = 4
 		challengeName = "Bloodthirsty"
 	end
 
 	-- Add the detail lines
 	local confirmLineFrame = confirmLineFrames[challengeName]
 	confirmLinesY = 110
-	if challengeName == "Ironman" then
-		confirmLinesY = 120
+	confirmLinesGap = 20
+	if challengeName == "Hardcore" then
+		CreateConfirmXLine("Any death is permanent and will delete your character", confirmLineFrame)
 	end
-	CreateConfirmXLine("Any death is permanent and will delete your character", confirmLineFrame)
 	if challengeName == "Ironman" then
 		CreateConfirmXLine("Can only wear |CFF9D9D9DPoor|CFFCD0000 and |CFFFFFFFFCommon|CFFCD0000 equipment", confirmLineFrame)
 		CreateConfirmXLine("Cannot use talent points", confirmLineFrame)
 	elseif challengeName == "Bloodthirsty" then
 		CreateConfirmXLine("Can only gain experience from defeating creatures", confirmLineFrame)
 	end
-	CreateConfirmXLine("Can only party up with other " .. challengeName .. " players", confirmLineFrame)
-	CreateConfirmXLine("Cannot use the Auction House", confirmLineFrame)
+	CreateConfirmXLine("Can only party up with players with the same challenges", confirmLineFrame)
 	CreateConfirmXLine("Cannot trade with other players", confirmLineFrame)
-	CreateConfirmXLine("Cannot receive items or money by mail", confirmLineFrame)
+	CreateConfirmXLine("Cannot send or receive items or money by mail", confirmLineFrame)
+	CreateConfirmXLine("Cannot use Auction Houses", confirmLineFrame)
 	CreateConfirmXLine("Cannot use Guild Banks", confirmLineFrame)
 	CreateConfirmXLine("Cannot be turned off", confirmLineFrame)
 
 	confirmLinesY = confirmLinesY - 10
 	CreateConfirmOKLine("Join the Hall of Fame when reaching maximum level", confirmLineFrame)
 	CreateConfirmOKLine("Receive unique rewards when reaching maximum level", confirmLineFrame)
-	CreateConfirmOKLine("Death is not permanent anymore at maximum level", confirmLineFrame)
+	if challengeName == "Hardcore" then
+		CreateConfirmOKLine("Death is not permanent anymore at maximum level", confirmLineFrame)
+	end
+	CreateConfirmOKLine("You can enlist for multiple challenges at the same time", confirmLineFrame)
 
 	btn:SetScript("OnClick", function()
 		challengeModes.selectedChallenge = challengeId
@@ -407,25 +411,25 @@ challengeModes.deathWindow.button:SetScript("OnClick", function()
 end)
 
 function Handlers.OpenBannerUI(player, eligible)
-	if eligible ~= true then
-		local errTxt = ""
-		if eligible == "CHALLENGEACTIVE" then
-			errTxt = "You have already accepted a challenge."
-		elseif eligible == "EXP" then
-			errTxt = "Only available to level 1 characters with no experience points.\nCreate a fresh character to start the challenge."
-		elseif eligible == "ITEMS" then
-			errTxt = "You possess items that were not included in your starting equipment.\nGet rid of them or create a fresh character to start the challenge."
-		elseif eligible == "MONEY" then
-			errTxt = "You have money in your inventory.\nGet rid of it or create a fresh character to start the challenge."
-		elseif eligible == "MAIL" then
-			errTxt = "You have pending mails.\nCreate a fresh character to start the challenge."
-		elseif eligible == "DEATHS" then
-			errTxt = "This character has died before...\nCreate a fresh character to start the challenge."
-		elseif eligible == "RANGE" then
-			errTxt = "You are too far away."
-		end
+	for i, btn in pairs(scrollButtons) do
+		if eligible[i] ~= true then
+			local errTxt = ""
+			if eligible[i] == "CHALLENGEACTIVE" then
+				errTxt = "You are already enlisted for this challenge."
+			elseif eligible[i] == "EXP" then
+				errTxt = "Only available to level 1 characters with no experience points.\nCreate a fresh character to start the challenge."
+			elseif eligible[i] == "ITEMS" then
+				errTxt = "You possess items that were not included in your starting equipment.\nGet rid of them or create a fresh character to start the challenge."
+			elseif eligible[i] == "MONEY" then
+				errTxt = "You have money in your inventory.\nGet rid of it or create a fresh character to start the challenge."
+			elseif eligible[i] == "MAIL" then
+				errTxt = "You have pending mails.\nCreate a fresh character to start the challenge."
+			elseif eligible[i] == "DEATHS" then
+				errTxt = "This character has died before...\nCreate a fresh character to start the challenge."
+			elseif eligible[i] == "RANGE" then
+				errTxt = "You are too far away."
+			end
 
-		for _, btn in pairs(scrollButtons) do
 			btn:Disable()
 			btn:SetMotionScriptsWhileDisabled(true)
 
@@ -438,9 +442,7 @@ function Handlers.OpenBannerUI(player, eligible)
 			btn:SetScript("OnLeave", function()
 				GameTooltip:Hide()
 			end)
-		end
-	else
-		for _, btn in pairs(scrollButtons) do
+		else
 			btn:Enable()
 			btn:SetScript("OnEnter", nil)
 			btn:SetScript("OnLeave", nil)
@@ -456,6 +458,10 @@ function Handlers.CloseBannerUI()
 end
 
 function Handlers.Enlisted(player, challenge)
+	if challengeModes.enlistSplashFrame ~= nil then
+		challengeModes.enlistSplashFrame:Hide()
+	end
+
 	challengeModes.enlistSplashFrame = CreateFrame("Frame", "ChallengeModesEnlistSplash", UIParent)
 	challengeModes.enlistSplashFrame:SetSize(467 * scaleX, 141 * scaleY)
 	challengeModes.enlistSplashFrame:EnableMouse(false)

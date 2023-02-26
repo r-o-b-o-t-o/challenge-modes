@@ -1,13 +1,8 @@
 import { Config } from "./Config";
 import { Character } from "./db/Character";
+import { allChallengeModes, EChallengeMode } from "./EChallengeMode";
 
 const AIO = require("AIO") as Aio;
-
-export enum EChallengeMode {
-	Hardcore = 0,
-	Ironman = 1,
-	Bloodthirsty = 2,
-}
 
 interface IPlayerUsingBanner {
 	bannerGobj: number;
@@ -51,11 +46,6 @@ class ChallengeModes {
 	}
 
 	private checkEligible(player: Player) {
-		// Check if a challenge is already active
-		if (this.isPlayerEnlisted(player)) {
-			return "CHALLENGEACTIVE";
-		}
-
 		// Check level and xp
 		if (player.GetLevel() > 1 || player.GetXP() > 0) {
 			return "EXP";
@@ -186,17 +176,26 @@ class ChallengeModes {
 	}
 
 	private onBannerUse(gobj: GameObject, player: Player) {
+		const char = this.getCharacter(player);
+
 		this.playersUsingBanner.push({
 			bannerGobj: gobj.GetGUID(),
 			player: player.GetGUID(),
 			map: gobj.GetMapId(),
 		});
 
-		AIO.Handle(player, this.channelName, "OpenBannerUI", this.checkEligible(player));
+		const eligible = this.checkEligible(player);
+		const eligibilityArray = allChallengeModes().map(challenge => char?.hasChallenge(challenge) ? "CHALLENGEACTIVE" : eligible);
+		AIO.Handle(player, this.channelName, "OpenBannerUI", eligibilityArray);
 	}
 
 	private onPlayerRepop(event: PlayerEvents, player: Player) {
 		if (!this.isPlayerEnlisted(player)) {
+			return;
+		}
+
+		const char = this.getCharacter(player);
+		if (!char.isHardcore()) {
 			return;
 		}
 
@@ -211,6 +210,9 @@ class ChallengeModes {
 		}
 
 		const char = this.getCharacter(player);
+		if (!char.isHardcore()) {
+			return;
+		}
 		char.name = player.GetName();
 		char.charDeleted = true;
 		char.save();
@@ -222,7 +224,7 @@ class ChallengeModes {
 	private onPlayerGiveXP(event: PlayerEvents, player: Player, amount: number, victim: Unit): number {
 		if (this.isPlayerEnlisted(player)) {
 			const char = this.getCharacter(player);
-			if (char.challenge === EChallengeMode.Bloodthirsty && (victim === null || victim.ToPlayer() !== null)) {
+			if (char.isBloodthirsty() && (victim === null || victim.ToPlayer() !== null)) {
 				return 0;
 			}
 		}
@@ -236,7 +238,7 @@ class ChallengeModes {
 	private onPlayerCanUseItem(event: PlayerEvents, player: Player, itemEntry: number): InventoryResult {
 		const character = this.getCharacter(player);
 		const itemTemplate = GetItemTemplate(itemEntry);
-		if (character?.challenge === EChallengeMode.Ironman && itemTemplate?.GetQuality() > 1) {
+		if (character?.isIronman() && itemTemplate?.GetQuality() > 1) {
 			// Prevent using items better than Common in Ironman mode
 			return InventoryResult.EQUIP_ERR_CANT_DO_RIGHT_NOW;
 		}
@@ -246,7 +248,7 @@ class ChallengeModes {
 
 	private onPlayerLearnTalent(event: PlayerEvents, player: Player, talent: number, rank: number, spell: number) {
 		const character = this.getCharacter(player);
-		if (character?.challenge === EChallengeMode.Ironman) {
+		if (character?.isIronman()) {
 			// Reset talents instantly for Ironman players if they try to use their points
 			player.ResetTalents(true);
 		}
@@ -288,13 +290,13 @@ class ChallengeModes {
 		const char = this.getCharacter(player);
 
 		if (!player.IsInGroup()) {
-			player.SendNotification(`You cannot queue alone when running the ${EChallengeMode[char.challenge]} Challenge.`);
+			player.SendNotification("You cannot queue alone on a Challenge character.");
 			return false;
 		}
 
 		const group = player.GetGroup();
 		if (group.GetMembersCount() !== 5) {
-			player.SendNotification(`You can only queue with a full group of 5 players when running the ${EChallengeMode[char.challenge]} Challenge.`);
+			player.SendNotification("You can only queue with a full group of 5 players running the same Challenges.");
 			return false;
 		}
 
@@ -303,7 +305,7 @@ class ChallengeModes {
 
 			if (memberChar?.challenge !== char.challenge) {
 				// Shouldn't be possible because of the group invite check, but better safe than sorry
-				player.SendNotification(`You can only queue with other ${EChallengeMode[char.challenge]} players.`);
+				player.SendNotification(`You can only queue with other ${char.formatChallenges()} players.`);
 				return false;
 			}
 		}
@@ -317,8 +319,11 @@ class ChallengeModes {
 		}
 
 		const char = this.getCharacter(player);
-		SendWorldMessage(`${player.GetName()} was killed by ${killer.GetName()} at level ${player.GetLevel()} (${EChallengeMode[char.challenge]} Challenge).`);
+		if (!char.isHardcore()) {
+			return;
+		}
 
+		SendWorldMessage(`${player.GetName()} was killed by ${killer.GetName()} at level ${player.GetLevel()} (${char.formatChallenges()} Challenge).`);
 		this.onPlayerDied(player);
 	}
 
@@ -328,10 +333,14 @@ class ChallengeModes {
 		}
 
 		const char = this.getCharacter(killed);
+		if (!char.isHardcore()) {
+			return;
+		}
+
 		if (killer.GetGUID() === killed.GetGUID()) {
-			SendWorldMessage(`${killed.GetName()} died at level ${killed.GetLevel()} (${EChallengeMode[char.challenge]} Challenge).`);
+			SendWorldMessage(`${killed.GetName()} died at level ${killed.GetLevel()} (${char.formatChallenges()} Challenge).`);
 		} else {
-			SendWorldMessage(`${killed.GetName()} was killed by player ${killer.GetName()} at level ${killed.GetLevel()} (${EChallengeMode[char.challenge]} Challenge).`);
+			SendWorldMessage(`${killed.GetName()} was killed by player ${killer.GetName()} at level ${killed.GetLevel()} (${char.formatChallenges()} Challenge).`);
 		}
 
 		this.onPlayerDied(killed);
@@ -347,7 +356,7 @@ class ChallengeModes {
 		char.playedTime = playedTime - player.GetLevelPlayedTime();
 		char.save();
 
-		AIO.Handle(player, this.channelName, "OpenDeathUI", EChallengeMode[char.challenge], this.formatPlayedTime(playedTime), char.getRank());
+		AIO.Handle(player, this.channelName, "OpenDeathUI", char.formatChallenges(), this.formatPlayedTime(playedTime), char.getRank());
 	}
 
 	private onGroupAddMember(event: GroupEvents, group: Group, newMemberGuid: number) {
@@ -367,7 +376,7 @@ class ChallengeModes {
 					if (player && player.IsInGroup()) {
 						player.GetGroup().RemoveMember(newMemberGuid, RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
 						if (newMemberCharacter) {
-							player.SendNotification(`You can only party up with ${EChallengeMode[newMemberCharacter.challenge]} players.`);
+							player.SendNotification(`You can only party up with ${newMemberCharacter.formatChallenges()} players.`);
 						} else {
 							player.SendNotification("You cannot party up with players running Challenge Modes.");
 						}
@@ -385,8 +394,14 @@ class ChallengeModes {
 	private enlist(player: Player, challenge: EChallengeMode) {
 		AIO.Handle(player, this.channelName, "CloseBannerUI");
 
-		if (![EChallengeMode.Hardcore, EChallengeMode.Ironman, EChallengeMode.Bloodthirsty].includes(challenge)) {
+		if (!allChallengeModes().includes(challenge)) {
 			// Invalid challenge id
+			return;
+		}
+
+		let char = this.getCharacter(player);
+		if (char?.hasChallenge(challenge)) {
+			player.SendNotification(`You are already enlisted for the ${EChallengeMode[challenge]} challenge.`);
 			return;
 		}
 
@@ -395,8 +410,12 @@ class ChallengeModes {
 			return;
 		}
 
-		const char = new Character(player.GetGUID(), player.GetName(), challenge);
-		this.characters.set(player.GetGUID().toString(), char);
+		if (!char) {
+			char = new Character(player.GetGUID(), player.GetName(), challenge);
+			this.characters.set(player.GetGUID().toString(), char);
+		} else {
+			char.addChallenge(challenge);
+		}
 		char.save();
 
 		AIO.Handle(player, this.channelName, "Enlisted", EChallengeMode[challenge]);
