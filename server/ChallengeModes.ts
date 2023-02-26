@@ -218,7 +218,15 @@ class ChallengeModes {
 		char.save();
 		this.characters.delete(player.GetGUID().toString());
 
-		RunCommand(`character erase ${player.GetName()}`);
+		RunCommand(`ban character ${player.GetName()} -1 Challenge Mode Death`);
+		CreateLuaEvent(() => {
+			CharDBExecute(`
+				UPDATE characters
+				SET deleteInfos_Name = name, deleteInfos_Account = account, deleteDate = UNIX_TIMESTAMP(), name = "", account = 0
+				WHERE guid = ${char.guid}
+			`);
+			RunCommand(`cache delete ${char.name}`);
+		}, 3000); // Wait for a few seconds, otherwise the name gets written again since the char data is saved when the player is disconnected
 	}
 
 	private onPlayerGiveXP(event: PlayerEvents, player: Player, amount: number, victim: Unit): number {
