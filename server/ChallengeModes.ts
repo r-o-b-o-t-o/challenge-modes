@@ -8,6 +8,7 @@ interface IPlayerUsingBanner {
 	bannerGobj: number;
 	player: number;
 	map: number;
+	responseReceived: boolean;
 }
 
 class ChallengeModes {
@@ -34,6 +35,7 @@ class ChallengeModes {
 	public constructor() {
 		AIO.AddHandlers(this.channelName, {
 			/** @noSelf **/ enlist: (...args: [Player, EChallengeMode]) => this.enlist(...args),
+			/** @noSelf **/ openBannerUI: (...args: [Player]) => this.openBannerUI(...args),
 			/** @noSelf **/ closeBannerUI: (...args: [Player]) => this.closeBannerUI(...args),
 		});
 
@@ -177,12 +179,29 @@ class ChallengeModes {
 
 	private onBannerUse(gobj: GameObject, player: Player) {
 		const char = this.getCharacter(player);
+		const guid = player.GetGUID();
 
-		this.playersUsingBanner.push({
-			bannerGobj: gobj.GetGUID(),
-			player: player.GetGUID(),
-			map: gobj.GetMapId(),
-		});
+		if (!this.playersUsingBanner.some(obj => obj.player === guid)) {
+			this.playersUsingBanner.push({
+				bannerGobj: gobj.GetGUID(),
+				player: guid,
+				map: gobj.GetMapId(),
+				responseReceived: false,
+			});
+
+			CreateLuaEvent(() => {
+				const player = GetPlayerByGUID(guid);
+				const obj = this.playersUsingBanner.find(obj => obj.player === guid);
+				if (player && obj?.responseReceived === false) {
+					let msg = "You need to install the AIO addon and the Challenge Modes patch to use this feature.";
+					if (Config.instance.downloadUrl?.length > 0) {
+						msg += "\nVisit " + Config.instance.downloadUrl;
+					}
+					player.SendNotification(msg);
+					this.closeBannerUI(player);
+				}
+			}, 500);
+		}
 
 		const eligible = this.checkEligible(player);
 		const eligibilityArray = allChallengeModes().map(challenge => char?.hasChallenge(challenge) ? "CHALLENGEACTIVE" : eligible);
@@ -447,6 +466,11 @@ class ChallengeModes {
 			const group = player.GetGroup();
 			group.RemoveMember(player.GetGUID(), RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
 		}
+	}
+
+	private openBannerUI(player: Player) {
+		const obj = this.playersUsingBanner.find(obj => obj.player === player.GetGUID());
+		obj.responseReceived = true;
 	}
 
 	private closeBannerUI(player: Player) {

@@ -411,6 +411,8 @@ challengeModes.deathWindow.button:SetScript("OnClick", function()
 end)
 
 function Handlers.OpenBannerUI(player, eligible)
+	AIO.Handle(channelName, "openBannerUI")
+
 	for i, btn in pairs(scrollButtons) do
 		if eligible[i] ~= true then
 			local errTxt = ""

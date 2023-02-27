@@ -1,5 +1,6 @@
 {
 	"maxLevel": 80,
 	"elunaDatabase": "acore_eluna",
-	"announcePermanentDeaths": true
+	"announcePermanentDeaths": true,
+	"downloadUrl": ""
 }
