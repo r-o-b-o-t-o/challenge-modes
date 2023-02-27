@@ -343,7 +343,7 @@ for _, btn in pairs(scrollButtons) do
 		CreateConfirmXLine("Can only gain experience from defeating creatures", confirmLineFrame)
 	end
 	CreateConfirmXLine("Can only party up with players with the same challenges", confirmLineFrame)
-	CreateConfirmXLine("Cannot trade with other players", confirmLineFrame)
+	CreateConfirmXLine("Can only trade with players with the same challenges", confirmLineFrame)
 	CreateConfirmXLine("Cannot send or receive items or money by mail", confirmLineFrame)
 	CreateConfirmXLine("Cannot use Auction Houses", confirmLineFrame)
 	CreateConfirmXLine("Cannot use Guild Banks", confirmLineFrame)

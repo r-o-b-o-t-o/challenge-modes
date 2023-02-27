@@ -240,7 +240,17 @@ class ChallengeModes {
 	}
 
 	private onPlayerTrade(event: PlayerEvents, player: Player, target: Player): boolean {
-		return !this.isPlayerEnlisted(player) && !this.isPlayerEnlisted(target);
+		const a = this.getCharacter(player);
+		const b = this.getCharacter(target);
+		const res = a?.challenge === b?.challenge;
+		if (!res) {
+			if (a) {
+				player.SendNotification(`You can only trade with other ${a.formatChallenges()} players.`);
+			} else {
+				player.SendNotification(`You cannot trade with ${b.formatChallenges()} players.`);
+			}
+		}
+		return res;
 	}
 
 	private onPlayerCanUseItem(event: PlayerEvents, player: Player, itemEntry: number): InventoryResult {
