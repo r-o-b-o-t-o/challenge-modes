@@ -385,7 +385,7 @@ challengeModes.deathWindow:Hide()
 
 CreateTexture(490 * scaleX, 446 * scaleY, { 0.0, 0.95703125, 0.0, 0.87109375 }, "BACKGROUND", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBackground", challengeModes.deathWindow)
 CreateTexture(490 * scaleX, 446 * scaleY, { 0.0, 0.95703125, 0.0, 0.87109375 }, "BORDER", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBorder", challengeModes.deathWindow)
-CreateTexture(187 * scaleX, 187 * scaleY, { 0.0, 1.0, 0.0, 1.0 }, "ARTWORK", "TOP", 0, -60, "Interface/ChallengeModes/Graveyard" .. random(1, 15), challengeModes.deathWindow)
+CreateTexture(187 * scaleX, 187 * scaleY, { 0.0, 1.0, 0.0, 1.0 }, "ARTWORK", "TOP", 0, -60, "Interface/ChallengeModes/Graveyard" .. random(1, 17), challengeModes.deathWindow)
 CreateTexture(207 * scaleX, 207 * scaleY, { 0.0, 0.80859375, 0.0, 0.80859375 }, "OVERLAY", "TOP", 0, -60 + 9 * scaleY, "Interface/ChallengeModes/SquareBorder", challengeModes.deathWindow)
 
 challengeModes.deathWindow.title = challengeModes.deathWindow:CreateFontString()
