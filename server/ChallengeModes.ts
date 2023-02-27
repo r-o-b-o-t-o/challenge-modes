@@ -341,7 +341,9 @@ class ChallengeModes {
 			return;
 		}
 
-		SendWorldMessage(`${player.GetName()} was killed by ${killer.GetName()} at level ${player.GetLevel()} (${char.formatChallenges()} Challenge).`);
+		if (Config.instance.announcePermanentDeaths) {
+			SendWorldMessage(`${player.GetName()} was killed by ${killer.GetName()} at level ${player.GetLevel()} (${char.formatChallenges()} Challenge).`);
+		}
 		this.onPlayerDied(player);
 	}
 
@@ -355,10 +357,12 @@ class ChallengeModes {
 			return;
 		}
 
-		if (killer.GetGUID() === killed.GetGUID()) {
-			SendWorldMessage(`${killed.GetName()} died at level ${killed.GetLevel()} (${char.formatChallenges()} Challenge).`);
-		} else {
-			SendWorldMessage(`${killed.GetName()} was killed by player ${killer.GetName()} at level ${killed.GetLevel()} (${char.formatChallenges()} Challenge).`);
+		if (Config.instance.announcePermanentDeaths) {
+			if (killer.GetGUID() === killed.GetGUID()) {
+				SendWorldMessage(`${killed.GetName()} died at level ${killed.GetLevel()} (${char.formatChallenges()} Challenge).`);
+			} else {
+				SendWorldMessage(`${killed.GetName()} was killed by player ${killer.GetName()} at level ${killed.GetLevel()} (${char.formatChallenges()} Challenge).`);
+			}
 		}
 
 		this.onPlayerDied(killed);

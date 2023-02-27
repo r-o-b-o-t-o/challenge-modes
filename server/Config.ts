@@ -5,6 +5,7 @@ export class Config {
 
 	public maxLevel = 80;
 	public elunaDatabase = "acore_eluna";
+	public announcePermanentDeaths = true;
 
 	public static read(): void {
 		const [file, err, errCode] = io.open(this.getDirectory() + "/../config.json", "r");
