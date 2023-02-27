@@ -378,13 +378,13 @@ end
 
 -- Death window
 challengeModes.deathWindow = CreateFrame("Frame", "ChallengeModesDeathWindow", UIParent)
-challengeModes.deathWindow:SetSize(390 * scaleX, 446 * scaleY)
+challengeModes.deathWindow:SetSize(490 * scaleX, 446 * scaleY)
 challengeModes.deathWindow:EnableMouse(true)
 challengeModes.deathWindow:SetPoint("CENTER", 0, 0)
 challengeModes.deathWindow:Hide()
 
-CreateTexture(390 * scaleX, 446 * scaleY, { 0.0, 0.76171875, 0.0, 0.87109375 }, "BACKGROUND", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBackground", challengeModes.deathWindow)
-CreateTexture(390 * scaleX, 446 * scaleY, { 0.0, 0.76171875, 0.0, 0.87109375 }, "BORDER", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBorder", challengeModes.deathWindow)
+CreateTexture(490 * scaleX, 446 * scaleY, { 0.0, 0.95703125, 0.0, 0.87109375 }, "BACKGROUND", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBackground", challengeModes.deathWindow)
+CreateTexture(490 * scaleX, 446 * scaleY, { 0.0, 0.95703125, 0.0, 0.87109375 }, "BORDER", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBorder", challengeModes.deathWindow)
 CreateTexture(187 * scaleX, 187 * scaleY, { 0.0, 1.0, 0.0, 1.0 }, "ARTWORK", "TOP", 0, -60, "Interface/ChallengeModes/Graveyard" .. random(1, 6), challengeModes.deathWindow)
 CreateTexture(207 * scaleX, 207 * scaleY, { 0.0, 0.80859375, 0.0, 0.80859375 }, "OVERLAY", "TOP", 0, -60 + 9 * scaleY, "Interface/ChallengeModes/SquareBorder", challengeModes.deathWindow)
 
