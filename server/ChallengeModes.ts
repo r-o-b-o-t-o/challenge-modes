@@ -46,7 +46,6 @@ class ChallengeModes {
 		this.loadCharacters();
 		this.registerBannerEvents();
 		this.registerPlayerEvents();
-		this.registerGroupEvents();
 		this.registerPacketEvents();
 	}
 
@@ -149,10 +148,7 @@ class ChallengeModes {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_JOIN_LFG, (...args) => this.onPlayerQueueRdf(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_KILLED_BY_CREATURE, (...args) => this.onPlayerKilledByCreature(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_KILL_PLAYER, (...args) => this.onPlayerPvPKilled(...args));
-	}
-
-	private registerGroupEvents() {
-		RegisterGroupEvent(GroupEvents.GROUP_EVENT_ON_MEMBER_ADD, (...args) => this.onGroupAddMember(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_GROUP_INVITE, (...args) => this.onPlayerCanGroupInvite(...args));
 	}
 
 	private registerPacketEvents() {
@@ -405,32 +401,39 @@ class ChallengeModes {
 		AIO.Handle(player, this.channelName, "OpenDeathUI", char.formatChallenges(), this.formatPlayedTime(playedTime), char.getRank());
 	}
 
-	private onGroupAddMember(event: GroupEvents, group: Group, newMemberGuid: number) {
-		if (group.GetGroupType() !== GroupType.GROUPTYPE_NORMAL && group.GetGroupType() !== GroupType.GROUPTYPE_RAID) {
-			return;
+	private onPlayerCanGroupInvite(event: PlayerEvents, player: Player, newMemberName: string): boolean {
+		// Prevent inviting if the new member has a different set of challenges
+
+		const newMember = GetPlayerByName(newMemberName);
+		if (!newMember) {
+			return true;
 		}
 
-		const newMemberCharacter = this.characters.get(newMemberGuid.toString());
-		for (const member of group.GetMembers()) {
-			const memberCharacter = this.characters.get(member.GetGUID().toString());
-			if (newMemberCharacter?.challenge !== memberCharacter?.challenge) {
-				// Remove the new member from the group if they are not running the same challenge
-				CreateLuaEvent(() => {
-					// The ON_MEMBER_ADD group event triggers before ON_CREATE, so let's not disband the group immediately,
-					// this would cause issues by destroying the group while it's still forming
-					const player = GetPlayerByGUID(newMemberGuid);
-					if (player && player.IsInGroup()) {
-						player.GetGroup().RemoveMember(newMemberGuid, RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
-						if (newMemberCharacter) {
-							player.SendNotification(`You can only party up with ${newMemberCharacter.formatChallenges()} players.`);
-						} else {
-							player.SendNotification("You cannot party up with players running Challenge Modes.");
-						}
-					}
-				}, 500);
-				break;
+		const char = this.getCharacter(player);
+		const newMemberChar = this.getCharacter(newMember);
+		let canInvite = newMemberChar?.challenge === char?.challenge;
+
+		const group = player.GetGroup();
+		if (canInvite && group !== null) {
+			for (const member of group.GetMembers()) {
+				const memberCharacter = this.getCharacter(member);
+				if (newMemberChar?.challenge !== memberCharacter?.challenge) {
+					canInvite = false;
+					break;
+				}
 			}
 		}
+
+		if (!canInvite) {
+			if (char) {
+				player.SendNotification(`You can only party up with ${char.formatChallenges()} players.`);
+			} else {
+				player.SendNotification("You cannot party up with players running Challenge Modes.");
+			}
+			return false;
+		}
+
+		return true;
 	}
 
 	private cancelPacket(event: PacketEvents, packet: WorldPacket, player: Player): boolean {
