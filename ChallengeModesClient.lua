@@ -78,6 +78,21 @@ else
 	textColor = "FF00165E"
 end
 
+local function CheckAddonVersion(version)
+	version = gsub(version, "%.", "_")
+
+	challengeModes.textureTestFrame = CreateFrame("Frame", "ChallengeModesTextureTestFrame", UIParent)
+	challengeModes.textureTestFrame:SetSize(64, 64)
+	challengeModes.textureTestFrame:SetPoint("CENTER")
+	challengeModes.textureTestFrame:Hide()
+
+	challengeModes.textureTestFrame.texture = challengeModes.textureTestFrame:CreateTexture()
+	local ret = challengeModes.textureTestFrame.texture:SetTexture("Interface/ChallengeModes/ChallengeModesVersion" .. version)
+	challengeModes.textureTestFrame = nil
+
+	return ret == 1
+end
+
 local function CreateTexture(width, height, coords, layer, anchor, x, y, texture, parent)
 	if anchor == nil then
 		anchor = "CENTER"
@@ -410,7 +425,17 @@ challengeModes.deathWindow.button:SetScript("OnClick", function()
 	RepopMe()
 end)
 
-function Handlers.OpenBannerUI(player, eligible)
+function Handlers.CheckAddonVersion(player, addonVersion)
+	if not CheckAddonVersion(addonVersion) then
+		AIO.Handle(channelName, "notifyInstallAddon", true)
+	end
+end
+
+function Handlers.OpenBannerUI(player, addonVersion, eligible)
+	if not CheckAddonVersion(addonVersion) then
+		AIO.Handle(channelName, "notifyInstallAddon", true)
+		return
+	end
 	AIO.Handle(channelName, "openBannerUI")
 
 	for i, btn in pairs(scrollButtons) do

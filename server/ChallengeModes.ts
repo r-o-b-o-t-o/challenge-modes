@@ -12,6 +12,8 @@ interface IPlayerUsingBanner {
 }
 
 class ChallengeModes {
+	private readonly addonVersion = "1.0.0";
+
 	// Constants
 	private readonly ACHIEVEMENT_CRITERIA_DEATHS = 111;
 	private readonly MSG_AUCTION_HELLO = 0x255;
@@ -37,6 +39,7 @@ class ChallengeModes {
 			/** @noSelf **/ enlist: (...args: [Player, EChallengeMode]) => this.enlist(...args),
 			/** @noSelf **/ openBannerUI: (...args: [Player]) => this.openBannerUI(...args),
 			/** @noSelf **/ closeBannerUI: (...args: [Player]) => this.closeBannerUI(...args),
+			/** @noSelf **/ notifyInstallAddon: (...args: [Player, boolean]) => this.notifyInstallAddon(...args),
 		});
 
 		this.playersUsingBanner = [];
@@ -134,6 +137,7 @@ class ChallengeModes {
 	}
 
 	private registerPlayerEvents() {
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_LOGIN, (...args) => this.onPlayerLogin(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_REPOP, (...args) => this.onPlayerRepop(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_RESURRECT, (...args) => this.onPlayerResurrect(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_GIVE_XP, (...args) => this.onPlayerGiveXP(...args));
@@ -193,19 +197,20 @@ class ChallengeModes {
 				const player = GetPlayerByGUID(guid);
 				const obj = this.playersUsingBanner.find(obj => obj.player === guid);
 				if (player && obj?.responseReceived === false) {
-					let msg = "You need to install the AIO addon and the Challenge Modes patch to use this feature.";
-					if (Config.instance.downloadUrl?.length > 0) {
-						msg += "\nVisit " + Config.instance.downloadUrl;
-					}
-					player.SendNotification(msg);
-					this.closeBannerUI(player);
+					this.notifyInstallAddon(player);
 				}
 			}, 500);
 		}
 
 		const eligible = this.checkEligible(player);
 		const eligibilityArray = allChallengeModes().map(challenge => char?.hasChallenge(challenge) ? "CHALLENGEACTIVE" : eligible);
-		AIO.Handle(player, this.channelName, "OpenBannerUI", eligibilityArray);
+		AIO.Handle(player, this.channelName, "OpenBannerUI", this.addonVersion, eligibilityArray);
+	}
+
+	private onPlayerLogin(event: PlayerEvents, player: Player) {
+		if (this.isPlayerEnlisted(player)) {
+			AIO.Handle(player, this.channelName, "CheckAddonVersion", this.addonVersion);
+		}
 	}
 
 	private onPlayerRepop(event: PlayerEvents, player: Player) {
@@ -478,6 +483,20 @@ class ChallengeModes {
 		if (idx !== -1) {
 			this.playersUsingBanner.splice(idx, 1);
 		}
+	}
+
+	private notifyInstallAddon(player: Player, outdatedPatch: boolean = false) {
+		let msg: string;
+		if (outdatedPatch) {
+			msg = "A newer version of the Challenge Modes patch is available.";
+		} else {
+			msg = "You need to install the AIO addon and the Challenge Modes patch to use this feature.";
+		}
+		if (Config.instance.downloadUrl?.length > 0) {
+			msg += "\nVisit " + Config.instance.downloadUrl;
+		}
+		player.SendNotification(msg);
+		this.closeBannerUI(player); // Remove player from the `playersUsingBanner` array
 	}
 
 	private isPlayerInRangeFromBanner(player: Player): boolean {
