@@ -37,13 +37,15 @@ for i in range(n_rows):
     fake_data["gender"].append(gender)
     level = fake.random_int(1, max_level)
     fake_data["level"].append(level)
-    fake_data["challenge"].append(fake.random_int(1, 7))
+    challenge = fake.random_int(1, 7)
+    fake_data["challenge"].append(challenge)
     dead = False
     if level == max_level:
         fake_data["completed"].append(1)
     else:
         fake_data["completed"].append(0)
-        dead = fake.pybool()
+        if challenge in [1, 3, 5, 7]: # challenges with hardcore mode
+            dead = fake.pybool()
     if dead:
         fake_data["dead"].append(1)
         fake_data["died_on"].append(0)
