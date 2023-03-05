@@ -1,4 +1,4 @@
-export class Database {
+export default class Database {
 	public static getRowsFromQuery(res: ElunaQuery): any[] {
 		if (!res) {
 			return [];

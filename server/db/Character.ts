@@ -1,25 +1,33 @@
-import { Config } from "../Config";
-import { Database } from "./Database";
+import Config from "../Config";
+import Database from "./Database";
 import { allChallengeModes, EChallengeMode } from "../EChallengeMode";
 
-export class Character {
+export default class Character {
 	public guid: number;
+	public account: number;
 	public name: string;
+	public race: number;
+	public class: number;
+	public gender: number;
+	public level: number;
 	public challenge: EChallengeMode;
 	public completed: boolean;
 	public dead: boolean;
-	public diedLevel: number;
 	public diedOn: number;
 	public charDeleted: boolean;
 	public playedTime: number;
 
-	public constructor(guid: number, name: string, challenge: EChallengeMode, completed = false, dead = false, diedLevel?: number, diedOn?: number, charDeleted = false, playedTime = null) {
+	public constructor(guid: number, account: number, name: string, race: number, _class: number, gender: number, level: number, challenge: EChallengeMode, completed = false, dead = false, diedOn?: number, charDeleted = false, playedTime = null) {
 		this.guid = guid;
+		this.account = account;
 		this.name = name;
+		this.race = race;
+		this.class = _class;
+		this.gender = gender;
+		this.level = level;
 		this.challenge = challenge;
 		this.completed = completed;
 		this.dead = dead;
-		this.diedLevel = diedLevel;
 		this.diedOn = diedOn;
 		this.charDeleted = charDeleted;
 		this.playedTime = playedTime;
@@ -58,13 +66,14 @@ export class Character {
 
 	public save(): void {
 		CharDBExecute(`
-			INSERT INTO ${Character.table()} (guid, name, challenge, completed, dead, died_level, died_on, char_deleted)
+			INSERT INTO ${Character.table()} (guid, account, name, race, class, gender, level, challenge, completed, dead, died_on, char_deleted, played_time)
 			VALUES
-				(${this.guid}, "${this.name}", ${this.challenge}, ${this.completed ? 1 : 0}, ${this.dead ? 1 : 0}, ${this.diedLevel ?? "NULL"}, ${this.diedOn ?? "NULL"}, ${this.charDeleted ? 1 : 0})
+				(${this.guid}, ${this.account}, "${this.name}", ${this.race}, ${this.class}, ${this.gender}, ${this.level}, ${this.challenge},
+				${this.completed ? 1 : 0}, ${this.dead ? 1 : 0}, ${this.diedOn ?? "NULL"}, ${this.charDeleted ? 1 : 0}, ${this.playedTime ?? "NULL"})
 			ON DUPLICATE KEY UPDATE
-				guid = ${this.guid}, name = "${this.name}", challenge = ${this.challenge}, completed = ${this.completed ? 1 : 0},
-				dead = ${this.dead ? 1 : 0}, died_level = ${this.diedLevel ?? "NULL"}, died_on = ${this.diedOn ?? "NULL"},
-				char_deleted = ${this.charDeleted ? 1 : 0}, played_time = ${this.playedTime ?? "NULL"}
+				guid = ${this.guid}, account = ${this.account}, name = "${this.name}", race = ${this.race}, class = ${this.class}, gender = ${this.gender},
+				level = ${this.level}, challenge = ${this.challenge}, completed = ${this.completed ? 1 : 0}, dead = ${this.dead ? 1 : 0},
+				died_on = ${this.diedOn ?? "NULL"}, char_deleted = ${this.charDeleted ? 1 : 0}, played_time = ${this.playedTime ?? "NULL"}
 		`);
 	}
 
@@ -78,8 +87,8 @@ export class Character {
 					(
 						dead = 1 AND
 						(
-							died_level > ${this.diedLevel} OR
-							(died_level = ${this.diedLevel} AND played_time < ${this.playedTime})
+							level > ${this.level} OR
+							(level = ${this.level} AND played_time < ${this.playedTime})
 						)
 					)
 				)
@@ -88,13 +97,16 @@ export class Character {
 		return rows.length > 0 ? rows[0].ranking : -1;
 	}
 
-	public print(): void {
-		print(`guid: ${this.guid}, name: "${this.name}", challenge: ${this.challenge}, completed: ${this.completed ? 1 : 0}, dead: ${this.dead ? 1 : 0}, diedLevel: ${this.diedLevel ?? "null"}, diedOn: ${this.diedOn ?? "null"}, charDeleted: ${this.charDeleted ? 1 : 0}, playedTime: ${this.playedTime ?? "null"}`);
+	public updateCharacterData(player: Player) {
+		this.name = player.GetName();
+		this.race = player.GetRace();
+		this.gender = player.GetGender();
+		this.level = player.GetLevel();
 	}
 
 	public static getAllActive(): Character[] {
 		const res = CharDBQuery(`
-			SELECT guid, name, challenge, completed, dead, died_level, died_on, char_deleted, played_time
+			SELECT guid, account, name, race, class, gender, level, challenge, completed, dead, died_on, char_deleted, played_time
 			FROM ${Character.table()}
 			WHERE
 				completed = 0 AND
@@ -103,11 +115,11 @@ export class Character {
 		return Database.getRowsFromQuery(res).map(row => this.createFromRow(row));
 	}
 
-	private static table(): string {
+	public static table(): string {
 		return `${Config.instance.elunaDatabase}.challenge_modes_character`;
 	}
 
 	private static createFromRow(row: any): Character {
-		return new Character(row.guid, row.name, row.challenge, row.completed === 1, row.dead === 1, row.died_level, row.died_on, row.char_deleted === 1, row.played_time);
+		return new Character(row.guid, row.account, row.name, row.race, row.class, row.gender, row.level, row.challenge, row.completed === 1, row.dead === 1, row.died_on, row.char_deleted === 1, row.played_time);
 	}
 }

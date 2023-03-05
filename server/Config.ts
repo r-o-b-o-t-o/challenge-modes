@@ -1,12 +1,16 @@
 import * as json from "./lib/json";
 
-export class Config {
+export default class Config {
 	public static instance: Config;
 
-	public maxLevel = 80;
-	public elunaDatabase = "acore_eluna";
-	public announcePermanentDeaths = true;
-	public downloadUrl = "";
+	public channelName: string;
+	public maxLevel: number;
+	public elunaDatabase: string;
+	public announcePermanentDeaths: boolean;
+	public downloadUrl: string;
+	public hallOfFameMaxResults: number;
+	public shrineBuffs: number[];
+	public shrineBuffChangeTime: number;
 
 	public static read(): void {
 		const [file, err, errCode] = io.open(this.getDirectory() + "/../config.json", "r");

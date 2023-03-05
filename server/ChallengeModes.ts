@@ -1,15 +1,12 @@
-import { Config } from "./Config";
-import { Character } from "./db/Character";
+import Config from "./Config";
+import PlayerMap from "./PlayerMap";
+import HallOfFame from "./db/HallOfFame";
+import Character from "./db/Character";
+import ChallengeGameObject from "./ChallengeGameObject";
 import { allChallengeModes, EChallengeMode } from "./EChallengeMode";
+import Utils from "./Utils";
 
 const AIO = require("AIO") as Aio;
-
-interface IPlayerUsingBanner {
-	bannerGobj: number;
-	player: number;
-	map: number;
-	responseReceived: boolean;
-}
 
 class ChallengeModes {
 	private readonly addonVersion = "1.0.0";
@@ -27,22 +24,35 @@ class ChallengeModes {
 	// Ids
 	private readonly allianceGobjEntry = 2000000;
 	private readonly hordeGobjEntry = 2000001;
+	private readonly allianceShrineGobjEntry = 2000002;
+	private readonly hordeShrineGobjEntry = 2000003;
+	private readonly hofGobjEntry = 2000004;
 	private readonly startingGear = [38, 39, 40, 49778, 6948, 45, 43, 44, 2361, 49, 47, 48, 28979, 2092, 50055, 6098, 52, 53, 51, 35, 34652, 34655, 34659, 34650, 34653, 34649, 34651, 34656, 34648, 34657, 34658, 38145, 38147, 41751, 40582, 56, 1395, 55, 6096, 57, 6097, 1396, 59, 6125, 139, 140, 12282, 127, 6126, 6127, 2101, 2504, 2512, 2105, 120, 121, 25861, 154, 153, 36, 2362, 6129, 6117, 6118, 148, 147, 129, 2102, 2508, 2516, 6116, 159, 4540, 6120, 6121, 6122, 3661, 6119, 6123, 6124, 6144, 6140, 6139, 6136, 6137, 6138, 6134, 6135, 24143, 24145, 24146, 23346, 20901, 20899, 20900, 20980, 20982, 20897, 20896, 20898, 50057, 20891, 20978, 20893, 20894, 20895, 20892, 23473, 23474, 23475, 23476, 23477, 23345, 23344, 23348, 23347, 23322, 23478, 23479];
 	private readonly startingGearQuantities = { 2512: 200, 2516: 200, 38145: 4, 41751: 10 };
 
-	private readonly channelName = "ChallengeModes";
-	private playersUsingBanner: IPlayerUsingBanner[];
-	private characters: LuaMap<string, Character>; // Key: character's GUID converted to string
+	private readonly hallOfFame: HallOfFame;
+	private readonly bannerGobj: ChallengeGameObject;
+	private readonly hallOfFameGobj: ChallengeGameObject;
+	private characters: PlayerMap<Character>; // Key: character's GUID converted to string
+	private shrineBuff: number;
 
 	public constructor() {
-		AIO.AddHandlers(this.channelName, {
+		AIO.AddHandlers(Config.instance.channelName, {
 			/** @noSelf **/ enlist: (...args: [Player, EChallengeMode]) => this.enlist(...args),
 			/** @noSelf **/ openBannerUI: (...args: [Player]) => this.openBannerUI(...args),
 			/** @noSelf **/ closeBannerUI: (...args: [Player]) => this.closeBannerUI(...args),
-			/** @noSelf **/ notifyInstallAddon: (...args: [Player, boolean]) => this.notifyInstallAddon(...args),
+			/** @noSelf **/ openHallOfFameUI: (...args: [Player]) => this.openHallOfFameUI(...args),
+			/** @noSelf **/ closeHallOfFameUI: (...args: [Player]) => this.closeHallOfFameUI(...args),
+			/** @noSelf **/ notifyInstallAddon: (...args: [Player, boolean]) => Utils.notifyInstallAddon(...args),
+			/** @noSelf **/ hallOfFameData: (...args: [Player, number, boolean, boolean, boolean, boolean, number]) => this.hallOfFameData(...args),
 		});
 
-		this.playersUsingBanner = [];
+		this.pickRandomShrineBuff();
+		CreateLuaEvent(() => this.pickRandomShrineBuff(), Config.instance.shrineBuffChangeTime * 1000, 0);
+
+		this.hallOfFame = new HallOfFame();
+		this.bannerGobj = new ChallengeGameObject(15, "CloseBannerUI");
+		this.hallOfFameGobj = new ChallengeGameObject(15, "CloseHallOfFameUI");
 		this.loadCharacters();
 		this.registerBannerEvents();
 		this.registerPlayerEvents();
@@ -102,7 +112,7 @@ class ChallengeModes {
 		}
 
 		// Make sure the player is still in range from the banner
-		if (!this.isPlayerInRangeFromBanner(player)) {
+		if (!this.bannerGobj.isPlayerInRange(player)) {
 			return "RANGE";
 		}
 
@@ -110,29 +120,19 @@ class ChallengeModes {
 	}
 
 	private loadCharacters() {
-		this.characters = new LuaMap<string, Character>();
+		this.characters = new PlayerMap<Character>();
 
 		for (const char of Character.getAllActive()) {
-			this.characters.set(char.guid.toString(), char);
+			this.characters.set(char.guid, char);
 		}
 	}
 
 	private registerBannerEvents() {
-		CreateLuaEvent(() => {
-			for (let i = this.playersUsingBanner.length - 1; i >= 0; --i) {
-				const bannerUse = this.playersUsingBanner[i];
-				const player = GetPlayerByGUID(bannerUse.player);
-				if (player === undefined || !this.isPlayerInRangeFromBanner(player)) {
-					this.playersUsingBanner.splice(i, 1);
-					if (player !== undefined) {
-						AIO.Handle(player, this.channelName, "CloseBannerUI");
-					}
-				}
-			}
-		}, 5000, 0);
-
 		RegisterGameObjectEvent(this.allianceGobjEntry, GameObjectEvents.GAMEOBJECT_EVENT_ON_USE, (...args) => this.onAllianceBannerUse(...args));
 		RegisterGameObjectEvent(this.hordeGobjEntry, GameObjectEvents.GAMEOBJECT_EVENT_ON_USE, (...args) => this.onHordeBannerUse(...args));
+		RegisterGameObjectEvent(this.allianceShrineGobjEntry, GameObjectEvents.GAMEOBJECT_EVENT_ON_USE, (...args) => this.onShrineUse(...args));
+		RegisterGameObjectEvent(this.hordeShrineGobjEntry, GameObjectEvents.GAMEOBJECT_EVENT_ON_USE, (...args) => this.onShrineUse(...args));
+		RegisterGameObjectEvent(this.hofGobjEntry, GameObjectEvents.GAMEOBJECT_EVENT_ON_USE, (...args) => this.onHallOfFameUse(...args));
 	}
 
 	private registerPlayerEvents() {
@@ -179,33 +179,63 @@ class ChallengeModes {
 
 	private onBannerUse(gobj: GameObject, player: Player) {
 		const char = this.getCharacter(player);
-		const guid = player.GetGUID();
 
-		if (!this.playersUsingBanner.some(obj => obj.player === guid)) {
-			this.playersUsingBanner.push({
-				bannerGobj: gobj.GetGUID(),
-				player: guid,
-				map: gobj.GetMapId(),
-				responseReceived: false,
-			});
-
-			CreateLuaEvent(() => {
-				const player = GetPlayerByGUID(guid);
-				const obj = this.playersUsingBanner.find(obj => obj.player === guid);
-				if (player && obj?.responseReceived === false) {
-					this.notifyInstallAddon(player);
-				}
-			}, 500);
-		}
+		this.bannerGobj.use(gobj, player);
 
 		const eligible = this.checkEligible(player);
 		const eligibilityArray = allChallengeModes().map(challenge => char?.hasChallenge(challenge) ? "CHALLENGEACTIVE" : eligible);
-		AIO.Handle(player, this.channelName, "OpenBannerUI", this.addonVersion, eligibilityArray);
+		AIO.Handle(player, Config.instance.channelName, "OpenBannerUI", this.addonVersion, eligibilityArray);
+	}
+
+	private onShrineUse(event: GameObjectEvents, gobj: GameObject, player: Player) {
+		player.PerformEmote(16); // Kneel
+		const effectAura = 55845;
+
+		if (Config.instance.shrineBuffs?.length > 0 && this.isPlayerEnlisted(player)) {
+			const guid = player.GetGUID();
+			CreateLuaEvent(() => {
+				const player = GetPlayerByGUID(guid);
+				if (player && !Config.instance.shrineBuffs.some(aura => player.HasAura(aura))) {
+					player.AddAura(effectAura, player);
+					player.AddAura(this.shrineBuff, player);
+				}
+			}, 1200);
+			CreateLuaEvent(() => GetPlayerByGUID(guid)?.RemoveAura(effectAura), 2200);
+		}
+
+		return true;
+	}
+
+	private pickRandomShrineBuff() {
+		this.shrineBuff = Config.instance.shrineBuffs[Math.floor(Math.random() * Config.instance.shrineBuffs.length)];
+	}
+
+	private onHallOfFameUse(event: GameObjectEvents, gobj: GameObject, player: Player) {
+		this.hallOfFameGobj.use(gobj, player);
+		AIO.Handle(player, Config.instance.channelName, "OpenHallOfFameUI", this.addonVersion, Config.instance.hallOfFameMaxResults);
+		return true;
+	}
+
+	private hallOfFameData(player: Player, challenge: EChallengeMode, completed: boolean, failed: boolean, active: boolean, myChars: boolean, offset: number) {
+		if (!this.hallOfFameGobj.isPlayerInRange(player)) {
+			return;
+		}
+
+		const guid = player.GetGUID();
+		this.hallOfFame.fetch({
+			player: guid, challenge, completed, failed, active, myChars, account: player.GetAccountId(), offset,
+			callback: ({ rows, totalRows }) => {
+				const player = GetPlayerByGUID(guid);
+				if (player) {
+					AIO.Handle(player, Config.instance.channelName, "HallOfFameData", rows, totalRows);
+				}
+			}
+		});
 	}
 
 	private onPlayerLogin(event: PlayerEvents, player: Player) {
 		if (this.isPlayerEnlisted(player)) {
-			AIO.Handle(player, this.channelName, "CheckAddonVersion", this.addonVersion);
+			AIO.Handle(player, Config.instance.channelName, "CheckAddonVersion", this.addonVersion);
 		}
 	}
 
@@ -233,10 +263,10 @@ class ChallengeModes {
 		if (!char.isHardcore()) {
 			return;
 		}
-		char.name = player.GetName();
+		char.updateCharacterData(player);
 		char.charDeleted = true;
 		char.save();
-		this.characters.delete(player.GetGUID().toString());
+		this.characters.delete(player);
 
 		RunCommand(`ban character ${player.GetName()} -1 Challenge Mode Death`);
 		CreateLuaEvent(() => {
@@ -297,18 +327,20 @@ class ChallengeModes {
 			return;
 		}
 
+		const char = this.getCharacter(player);
+		char.updateCharacterData(player);
+		char.playedTime = player.GetTotalPlayedTime();
+
 		if (player.GetLevel() === Config.instance.maxLevel) {
-			const character = this.getCharacter(player);
-			character.completed = true;
-			character.name = player.GetName();
-			character.playedTime = player.GetTotalPlayedTime();
-			character.save();
-			this.characters.delete(player.GetGUID().toString());
+			char.completed = true;
+			this.characters.delete(player);
 		}
+
+		char.save();
 	}
 
 	private onPlayerSendMail(event: PlayerEvents, player: Player, receiverGuid: number, mailbox: number, subject: string, body: string, money: number, cod: number, item: Item): boolean {
-		if (this.characters.has(receiverGuid.toString()) && (money > 0 || item !== null)) {
+		if (this.characters.has(receiverGuid) && (money > 0 || item !== null)) {
 			// Prevent from sending the mail if the target character is running a challenge and the mail contains money or items
 			return false;
 		}
@@ -389,16 +421,13 @@ class ChallengeModes {
 	}
 
 	private onPlayerDied(player: Player) {
-		const playedTime = player.GetTotalPlayedTime();
 		const char = this.getCharacter(player);
 		char.dead = true;
-		char.diedLevel = player.GetLevel();
+		char.updateCharacterData(player);
 		char.diedOn = GetGameTime();
-		char.name = player.GetName();
-		char.playedTime = playedTime - player.GetLevelPlayedTime();
 		char.save();
 
-		AIO.Handle(player, this.channelName, "OpenDeathUI", char.formatChallenges(), this.formatPlayedTime(playedTime), char.getRank());
+		AIO.Handle(player, Config.instance.channelName, "OpenDeathUI", char.formatChallenges(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), char.getRank());
 	}
 
 	private onPlayerCanGroupInvite(event: PlayerEvents, player: Player, newMemberName: string): boolean {
@@ -441,7 +470,7 @@ class ChallengeModes {
 	}
 
 	private enlist(player: Player, challenge: EChallengeMode) {
-		AIO.Handle(player, this.channelName, "CloseBannerUI");
+		AIO.Handle(player, Config.instance.channelName, "CloseBannerUI");
 
 		if (!allChallengeModes().includes(challenge)) {
 			// Invalid challenge id
@@ -460,14 +489,14 @@ class ChallengeModes {
 		}
 
 		if (!char) {
-			char = new Character(player.GetGUID(), player.GetName(), challenge);
-			this.characters.set(player.GetGUID().toString(), char);
+			char = new Character(player.GetGUID(), player.GetAccountId(), player.GetName(), player.GetRace(), player.GetClass(), player.GetGender(), player.GetLevel(), challenge);
+			this.characters.set(player, char);
 		} else {
 			char.addChallenge(challenge);
 		}
 		char.save();
 
-		AIO.Handle(player, this.channelName, "Enlisted", EChallengeMode[challenge]);
+		AIO.Handle(player, Config.instance.channelName, "Enlisted", EChallengeMode[challenge]);
 
 		if (player.IsInGroup()) {
 			// Remove from group
@@ -477,62 +506,27 @@ class ChallengeModes {
 	}
 
 	private openBannerUI(player: Player) {
-		const obj = this.playersUsingBanner.find(obj => obj.player === player.GetGUID());
-		obj.responseReceived = true;
+		this.bannerGobj.responseReceived(player);
 	}
 
 	private closeBannerUI(player: Player) {
-		const idx = this.playersUsingBanner.findIndex(obj => obj.player === player.GetGUID());
-		if (idx !== -1) {
-			this.playersUsingBanner.splice(idx, 1);
-		}
+		this.bannerGobj.close(player);
 	}
 
-	private notifyInstallAddon(player: Player, outdatedPatch: boolean = false) {
-		let msg: string;
-		if (outdatedPatch) {
-			msg = "A newer version of the Challenge Modes patch is available.";
-		} else {
-			msg = "You need to install the AIO addon and the Challenge Modes patch to use this feature.";
-		}
-		if (Config.instance.downloadUrl?.length > 0) {
-			msg += "\nVisit " + Config.instance.downloadUrl;
-		}
-		player.SendNotification(msg);
-		this.closeBannerUI(player); // Remove player from the `playersUsingBanner` array
+	private openHallOfFameUI(player: Player) {
+		this.hallOfFameGobj.responseReceived(player);
 	}
 
-	private isPlayerInRangeFromBanner(player: Player): boolean {
-		const bannerUse = this.playersUsingBanner.find(obj => obj.player === player.GetGUID());
-		if (bannerUse === undefined) {
-			return false;
-		}
-
-		const map = GetMapById(bannerUse.map);
-		const banner = map?.GetWorldObject(bannerUse.bannerGobj);
-		if (banner === undefined) {
-			return false;
-		}
-		return player.IsInRange(banner, 0, 15);
+	private closeHallOfFameUI(player: Player) {
+		this.hallOfFameGobj.close(player);
 	}
 
 	private isPlayerEnlisted(player: Player): boolean {
-		return this.characters.has(player.GetGUID().toString());
+		return this.characters.has(player);
 	}
 
 	private getCharacter(player: Player): Character {
-		return this.characters.get(player.GetGUID().toString());
-	}
-
-	private formatPlayedTime(seconds: number): string {
-		const d = Math.floor(seconds / (3600 * 24));
-		const h = Math.floor(seconds % (3600 * 24) / 3600);
-		const m = Math.floor(seconds % 3600 / 60);
-
-		const days = d > 0 ? d + "d " : "";
-		const hours = h > 0 ? h + "h " : "";
-		const minutes = m + "m";
-		return days + hours + minutes;
+		return this.characters.get(player);
 	}
 }
 

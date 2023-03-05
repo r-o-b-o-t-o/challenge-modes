@@ -1,6 +1,10 @@
 {
+	"channelName": "ChallengeModes",
 	"maxLevel": 80,
 	"elunaDatabase": "acore_eluna",
 	"announcePermanentDeaths": true,
-	"downloadUrl": ""
+	"downloadUrl": "",
+	"hallOfFameMaxResults": 250,
+	"shrineBuffs": [],
+	"shrineBuffChangeTime": 3600
 }
