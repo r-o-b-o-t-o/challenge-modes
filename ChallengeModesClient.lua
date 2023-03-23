@@ -689,7 +689,7 @@ local function CreateHoFRow()
 	row.txtName = row:CreateFontString()
 	row.txtName:SetPoint("TOPLEFT", x, 0)
 	row.txtName:SetFont("Fonts/FRIZQT__.TTF", 12)
-	row.txtName:SetWidth(80)
+	row.txtName:SetWidth(85)
 	row.txtName:SetHeight(challengeModes.hofWindow.rowHeight)
 	row.txtName:SetJustifyH("CENTER")
 	x = x + row.txtName:GetWidth()
@@ -743,6 +743,36 @@ challengeModes.hofWindow.closeButton:EnableMouse(true)
 challengeModes.hofWindow.closeButton:SetSize(32, 32)
 challengeModes.hofWindow.closeButton:SetScript("OnClick", function()
 	challengeModes.hofWindow:Hide()
+end)
+
+
+-- Completed window
+challengeModes.completedWindow = CreateFrame("Frame", "ChallengeModesCompletedWindow", UIParent)
+challengeModes.completedWindow:SetSize(400 * scaleX, 550 * scaleY)
+challengeModes.completedWindow:EnableMouse(true)
+challengeModes.completedWindow:SetPoint("CENTER", 0, 0)
+challengeModes.completedWindow:Hide()
+
+CreateTexture(400 * scaleX, 550 * scaleY, { 0.0, 0.78125, 0.0, 0.537109375 }, "BACKGROUND", "CENTER", 0, 0, "Interface/ChallengeModes/CompletedWindow", challengeModes.completedWindow)
+CreateTexture(187 * scaleX, 187 * scaleY, { 0.0, 1.0, 0.0, 1.0 }, "ARTWORK", "TOP", 0, -90, "Interface/ChallengeModes/Completed_" .. select(2, UnitClass("player")) .. "_" .. tostring(UnitSex("player") - 2), challengeModes.completedWindow)
+CreateTexture(207 * scaleX, 207 * scaleY, { 0.0, 0.80859375, 0.0, 0.80859375 }, "OVERLAY", "TOP", 0, -90 + 9 * scaleY, "Interface/ChallengeModes/SquareBorder", challengeModes.completedWindow)
+
+challengeModes.completedWindow.title = challengeModes.completedWindow:CreateFontString()
+challengeModes.completedWindow.title:SetPoint("TOP", 0, -32)
+challengeModes.completedWindow.title:SetFont("Fonts/MORPHEUS.TTF", 22)
+challengeModes.completedWindow.title:SetText("CONGRATULATIONS!")
+
+challengeModes.completedWindow.text = challengeModes.completedWindow:CreateFontString()
+challengeModes.completedWindow.text:SetPoint("CENTER", challengeModes.completedWindow, "BOTTOM", 0, 98)
+challengeModes.completedWindow.text:SetFont("Fonts/FRIZQT__.TTF", 16)
+
+challengeModes.completedWindow.closeButton = CreateFrame("Button", nil, challengeModes.completedWindow, "UIPanelCloseButton")
+challengeModes.completedWindow.closeButton:SetPoint("TOPRIGHT", 0, 0)
+challengeModes.completedWindow.closeButton:SetPoint("TOPRIGHT", -3, -4)
+challengeModes.completedWindow.closeButton:EnableMouse(true)
+challengeModes.completedWindow.closeButton:SetSize(28, 28)
+challengeModes.completedWindow.closeButton:SetScript("OnClick", function()
+	challengeModes.completedWindow:Hide()
 end)
 
 function RequestHoFData()
@@ -963,4 +993,13 @@ end
 
 function Handlers.CloseHallOfFameUI()
 	challengeModes.hofWindow:Hide()
+end
+
+function Handlers.OpenCompletedUI(player, challenge, playedTime, rank)
+	PlaySoundFile("Interface/ChallengeModes/1068315.ogg")
+	if string.len(challenge) > 23 then
+		challenge = challenge .. "\n"
+	end
+	challengeModes.completedWindow.text:SetText(UnitName("player") .. " faced many challenges,\nbut overcame them through\nsheer will and determination\n\nPlayed for " .. playedTime .. "\n\n" .. challenge .. " rank: #" .. rank)
+	challengeModes.completedWindow:Show()
 end

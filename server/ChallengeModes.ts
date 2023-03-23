@@ -331,12 +331,29 @@ class ChallengeModes {
 		char.updateCharacterData(player);
 		char.playedTime = player.GetTotalPlayedTime();
 
-		if (player.GetLevel() === Config.instance.maxLevel) {
+		if (player.GetLevel() >= Config.instance.maxLevel) {
 			char.completed = true;
 			this.characters.delete(player);
+			// char.save() is async, and we need the char to be saved in order to compute the rank correctly,
+			// so we wait for a few seconds before sending the results
+			CreateLuaEvent(() => this.onPlayerCompletedChallenge(char), 3000);
 		}
 
 		char.save();
+	}
+
+	private onPlayerCompletedChallenge(char: Character) {
+		const player = GetPlayerByGUID(char.guid);
+		if (!player) {
+			return;
+		}
+
+		if (player.IsInCombat()) {
+			CreateLuaEvent(() => this.onPlayerCompletedChallenge(char), 1000);
+			return;
+		}
+
+		AIO.Handle(player, Config.instance.channelName, "OpenCompletedUI", char.formatChallenges(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), char.getRank());
 	}
 
 	private onPlayerSendMail(event: PlayerEvents, player: Player, receiverGuid: number, mailbox: number, subject: string, body: string, money: number, cod: number, item: Item): boolean {

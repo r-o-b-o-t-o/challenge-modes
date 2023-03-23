@@ -79,19 +79,14 @@ export default class Character {
 
 	public getRank(): number {
 		const res = CharDBQuery(`
-			SELECT COUNT(guid) + 1 AS ranking FROM ${Character.table()}
-			WHERE
-				guid <> ${this.guid} AND challenge = ${this.challenge} AND
-				(
-					completed = 1 OR
-					(
-						dead = 1 AND
-						(
-							level > ${this.level} OR
-							(level = ${this.level} AND played_time < ${this.playedTime})
-						)
-					)
-				)
+			SELECT ranking, guid FROM (
+				SELECT
+					guid,
+					RANK() OVER (ORDER BY completed DESC, level DESC, played_time ASC) ranking
+				FROM ${Character.table()}
+				WHERE challenge = ${this.challenge}
+			) t
+			WHERE guid = ${this.guid}
 		`);
 		const rows = Database.getRowsFromQuery(res);
 		return rows.length > 0 ? rows[0].ranking : -1;
