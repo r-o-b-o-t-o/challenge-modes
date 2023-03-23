@@ -276,7 +276,7 @@ end)
 
 -- Confirm window
 challengeModes.confirmWindow = CreateFrame("Frame", "ChallengeModesConfirmWindow", UIParent)
-challengeModes.confirmWindow:SetSize(515 * scaleX, 438 * scaleY)
+challengeModes.confirmWindow:SetSize(560 * scaleX, 438 * scaleY)
 challengeModes.confirmWindow:EnableMouse(true)
 challengeModes.confirmWindow:SetPoint("CENTER", 0, 0)
 challengeModes.confirmWindow:Hide()
@@ -292,7 +292,7 @@ challengeModes.confirmWindow:SetScript("OnHide", function()
 	AIO.Handle(channelName, "closeBannerUI")
 end)
 
-CreateTexture(515 * scaleX, 438 * scaleY, atlas.WideScroll, "BACKGROUND", "CENTER", 0, 0, nil, challengeModes.confirmWindow)
+CreateTexture(560 * scaleX, 438 * scaleY, atlas.WideScroll, "BACKGROUND", "CENTER", 0, 0, nil, challengeModes.confirmWindow)
 
 challengeModes.confirmWindow.closeButton = CreateFrame("Button", nil, challengeModes.confirmWindow, "UIPanelCloseButton")
 challengeModes.confirmWindow.closeButton:SetPoint("TOPRIGHT", -4, -4)
