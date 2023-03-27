@@ -18,7 +18,7 @@ export default class Character {
 	public playedTime: number;
 
 	public constructor(guid: number, account: number, name: string, race: number, _class: number, gender: number, level: number, challenge: EChallengeMode, completed = false, dead = false, diedOn?: number, charDeleted = false, playedTime = null) {
-		this.guid = guid;
+		this.guid = tonumber(tostring(guid)); // guid can be userdata, force convert to number
 		this.account = account;
 		this.name = name;
 		this.race = race;
@@ -59,8 +59,8 @@ export default class Character {
 
 	public formatChallenges(): string {
 		const challenges = allChallengeModes()
-			.map(challenge => this.hasChallenge(challenge) ? EChallengeMode[challenge] : "")
-			.filter(str => str !== "");
+			.filter(challenge => this.hasChallenge(challenge))
+			.map(challenge => EChallengeMode[challenge]);
 		return challenges.join(" + ");
 	}
 
@@ -112,6 +112,13 @@ export default class Character {
 
 	public static table(): string {
 		return `${Config.instance.elunaDatabase}.challenge_modes_character`;
+	}
+
+	public static formatChallenges(challenge: EChallengeMode): string {
+		const challenges = allChallengeModes()
+			.filter(c => bit32.band(challenge, c) === c)
+			.map(c => EChallengeMode[c]);
+		return challenges.join(" + ");
 	}
 
 	private static createFromRow(row: any): Character {

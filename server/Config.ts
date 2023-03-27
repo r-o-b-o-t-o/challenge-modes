@@ -11,6 +11,8 @@ export default class Config {
 	public hallOfFameMaxResults: number;
 	public shrineBuffs: number[];
 	public shrineBuffChangeTime: number;
+	public rewards: { [key: string]: { [key: string]: number[] } };
+	public rewardsSender: number | null;
 
 	public static read(): void {
 		const [file, err, errCode] = io.open(this.getDirectory() + "/../config.json", "r");

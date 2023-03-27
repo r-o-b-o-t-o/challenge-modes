@@ -343,17 +343,41 @@ class ChallengeModes {
 	}
 
 	private onPlayerCompletedChallenge(char: Character) {
+		this.sendRewards(char);
+		this.openCompletedUI(char);
+	}
+
+	private openCompletedUI(char: Character) {
 		const player = GetPlayerByGUID(char.guid);
 		if (!player) {
 			return;
 		}
 
 		if (player.IsInCombat()) {
-			CreateLuaEvent(() => this.onPlayerCompletedChallenge(char), 1000);
+			CreateLuaEvent(() => this.openCompletedUI(char), 1000);
 			return;
 		}
 
 		AIO.Handle(player, Config.instance.channelName, "OpenCompletedUI", char.formatChallenges(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), char.getRank());
+	}
+
+	private sendRewards(char: Character) {
+		const body = "";
+		const classRewards = Config.instance.rewards[char.class.toString()];
+		if (!classRewards) {
+			return;
+		}
+
+		for (let challengeStr in classRewards) {
+			const challenge = parseInt(challengeStr);
+			if (char.hasChallenge(challenge)) {
+				const items = classRewards[challengeStr];
+				if (items.length > 0) {
+					const values = items.map(item => [item, 1]).flat();
+					SendMail(Character.formatChallenges(challenge) + " Challenge Rewards", body, char.guid, Config.instance.rewardsSender ?? 0, MailStationery.MAIL_STATIONERY_GM, 0, 0, 0, ...values);
+				}
+			}
+		}
 	}
 
 	private onPlayerSendMail(event: PlayerEvents, player: Player, receiverGuid: number, mailbox: number, subject: string, body: string, money: number, cod: number, item: Item): boolean {
