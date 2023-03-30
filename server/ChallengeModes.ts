@@ -1,10 +1,11 @@
+import Utils from "./Utils";
 import Config from "./Config";
 import PlayerMap from "./PlayerMap";
-import HallOfFame from "./db/HallOfFame";
 import Character from "./db/Character";
+import HallOfFame from "./db/HallOfFame";
+import { timestampToDate } from "./date";
 import ChallengeGameObject from "./ChallengeGameObject";
 import { allChallengeModes, EChallengeMode } from "./EChallengeMode";
-import Utils from "./Utils";
 
 const AIO = require("AIO") as Aio;
 
@@ -263,11 +264,13 @@ class ChallengeModes {
 		if (!char.isHardcore()) {
 			return;
 		}
+
 		char.updateCharacterData(player);
 		char.charDeleted = true;
 		char.save();
 		this.characters.delete(player);
 
+		this.log("Deleting character", player);
 		RunCommand(`ban character ${player.GetName()} -1 Challenge Mode Death`);
 		CreateLuaEvent(() => {
 			CharDBExecute(`
@@ -332,6 +335,7 @@ class ChallengeModes {
 		char.playedTime = player.GetTotalPlayedTime();
 
 		if (player.GetLevel() >= Config.instance.maxLevel) {
+			this.log(`Challenge ${char.formatChallenges()} completed`, GetPlayerByGUID(char.guid));
 			char.completed = true;
 			this.characters.delete(player);
 			// char.save() is async, and we need the char to be saved in order to compute the rank correctly,
@@ -368,6 +372,8 @@ class ChallengeModes {
 			return;
 		}
 
+		const player = GetPlayerByGUID(char.guid);
+
 		for (let challengeStr in classRewards) {
 			const challenge = parseInt(challengeStr);
 			if (char.hasChallenge(challenge)) {
@@ -375,6 +381,7 @@ class ChallengeModes {
 				if (items.length > 0) {
 					const values = items.map(item => [item, 1]).flat();
 					SendMail(Character.formatChallenges(challenge) + " Challenge Rewards", body, char.guid, Config.instance.rewardsSender ?? 0, MailStationery.MAIL_STATIONERY_GM, 0, 0, 0, ...values);
+					this.log(`Sent rewards for ${Character.formatChallenges(challenge)}`, player);
 				}
 			}
 		}
@@ -462,6 +469,7 @@ class ChallengeModes {
 	}
 
 	private onPlayerDied(player: Player) {
+		this.log("Died", player);
 		const char = this.getCharacter(player);
 		char.dead = true;
 		char.updateCharacterData(player);
@@ -536,6 +544,7 @@ class ChallengeModes {
 			char.addChallenge(challenge);
 		}
 		char.save();
+		this.log(`Enlisted for ${Character.formatChallenges(challenge)}`, player);
 
 		AIO.Handle(player, Config.instance.channelName, "Enlisted", EChallengeMode[challenge]);
 
@@ -568,6 +577,19 @@ class ChallengeModes {
 
 	private getCharacter(player: Player): Character {
 		return this.characters.get(player);
+	}
+
+	private log(text: string, player?: Player) {
+		const [dir] = string.match(debug.getinfo(1).source, "@?(.*/)");
+		const [f, _, __] = io.open(dir + "/challengemodes.log", "a");
+		if (!f) {
+			return;
+		}
+
+		const date = timestampToDate(parseInt(GetGameTime() + ""));
+		const playerStr = player != undefined ? ` [${player.GetName()} (${player.GetGUID()})]` : "";
+		f.write(`[${date.year}-${date.month + 1}-${date.mday} ${date.hour}:${date.min}:${date.sec} UTC]${playerStr} ${text}\n`);
+		f.close();
 	}
 }
 
