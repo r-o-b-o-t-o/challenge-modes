@@ -58,6 +58,8 @@ class ChallengeModes {
 		this.registerBannerEvents();
 		this.registerPlayerEvents();
 		this.registerPacketEvents();
+
+		_G.ChallengeModes = this;
 	}
 
 	private checkEligible(player: Player) {
