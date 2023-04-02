@@ -362,7 +362,10 @@ class ChallengeModes {
 			return;
 		}
 
-		AIO.Handle(player, Config.instance.channelName, "OpenCompletedUI", char.formatChallenges(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), char.getRank());
+		char.getRank((rank) => {
+			const player = GetPlayerByGUID(char.guid);
+			AIO.Handle(player, Config.instance.channelName, "OpenCompletedUI", char.formatChallenges(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), rank);
+		});
 	}
 
 	private sendRewards(char: Character) {
@@ -476,7 +479,10 @@ class ChallengeModes {
 		char.diedOn = GetGameTime();
 		char.save();
 
-		AIO.Handle(player, Config.instance.channelName, "OpenDeathUI", char.formatChallenges(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), char.getRank());
+		char.getRank((rank) => {
+			const player = GetPlayerByGUID(char.guid);
+			AIO.Handle(player, Config.instance.channelName, "OpenDeathUI", char.formatChallenges(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), rank);
+		});
 	}
 
 	private onPlayerCanGroupInvite(event: PlayerEvents, player: Player, newMemberName: string): boolean {

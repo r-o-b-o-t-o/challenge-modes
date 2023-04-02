@@ -55,7 +55,7 @@ export default class HallOfFame {
 			(${req.myChars ? `account = ${req.account}` : "1"})
 		`;
 
-		const res = CharDBQuery(`
+		CharDBQueryAsync(`
 			SELECT * FROM (
 				SELECT
 					account, name, class, level, completed, dead,
@@ -67,20 +67,21 @@ export default class HallOfFame {
 			ORDER BY ranking ASC
 			LIMIT ${Config.instance.hallOfFameMaxResults}
 			OFFSET ${req.offset}
-		`);
-		const rows = Database.getRowsFromQuery(res).map(row => this.createFromRow(row, req.account));
+		`, (res) => {
+			const rows = Database.getRowsFromQuery(res).map(row => this.createFromRow(row, req.account));
 
-		const countRes = CharDBQuery(`
-			SELECT COUNT(guid) AS c
-			FROM ${Character.table()}
-			WHERE challenge = ${req.challenge} AND (${filter})
-		`);
-		const totalRows = Database.getRowsFromQuery(countRes)[0].c;
-
-		req.callback({
-			rows,
-			totalRows,
-			maxResults: Config.instance.hallOfFameMaxResults,
+			CharDBQueryAsync(`
+				SELECT COUNT(guid) AS c
+				FROM ${Character.table()}
+				WHERE challenge = ${req.challenge} AND (${filter})
+			`, (countRes) => {
+				const totalRows = Database.getRowsFromQuery(countRes)[0].c;
+				req.callback({
+					rows,
+					totalRows,
+					maxResults: Config.instance.hallOfFameMaxResults,
+				});
+			});
 		});
 	}
 

@@ -77,9 +77,9 @@ export default class Character {
 		`);
 	}
 
-	public getRank(): number {
-		const res = CharDBQuery(`
-			SELECT ranking, guid FROM (
+	public getRank(cb: (rank: number) => void) {
+		CharDBQueryAsync(`
+			SELECT ranking FROM (
 				SELECT
 					guid,
 					RANK() OVER (ORDER BY completed DESC, level DESC, played_time ASC) ranking
@@ -87,9 +87,10 @@ export default class Character {
 				WHERE challenge = ${this.challenge}
 			) t
 			WHERE guid = ${this.guid}
-		`);
-		const rows = Database.getRowsFromQuery(res);
-		return rows.length > 0 ? rows[0].ranking : -1;
+		`, (res) => {
+			const rows = Database.getRowsFromQuery(res);
+			cb?.(rows.length > 0 ? rows[0].ranking : -1);
+		});
 	}
 
 	public updateCharacterData(player: Player) {
