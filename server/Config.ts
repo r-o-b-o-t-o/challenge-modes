@@ -8,6 +8,7 @@ export default class Config {
 	public elunaDatabase: string;
 	public announcePermanentDeaths: boolean;
 	public announcePermanentDeathsMinLevel: number;
+	public announceCompletions: boolean;
 	public downloadUrl: string;
 	public hallOfFameMaxResults: number;
 	public shrineBuffs: number[];

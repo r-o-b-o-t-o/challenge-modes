@@ -355,18 +355,19 @@ class ChallengeModes {
 
 	private openCompletedUI(char: Character) {
 		const player = GetPlayerByGUID(char.guid);
-		if (!player) {
-			return;
-		}
-
-		if (player.IsInCombat()) {
+		if (player?.IsInCombat()) {
 			CreateLuaEvent(() => this.openCompletedUI(char), 1000);
 			return;
 		}
 
 		char.getRank((rank) => {
 			const player = GetPlayerByGUID(char.guid);
-			AIO.Handle(player, Config.instance.channelName, "OpenCompletedUI", char.formatChallenges(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), rank);
+			if (player) {
+				AIO.Handle(player, Config.instance.channelName, "OpenCompletedUI", char.formatChallenges(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), rank);
+			}
+			if (Config.instance.announceCompletions) {
+				SendWorldMessage(`${this.getColoredName(char)} completed the ${char.formatChallenges()} Challenge and was ranked #${rank}!`);
+			}
 		});
 	}
 
@@ -447,7 +448,7 @@ class ChallengeModes {
 		}
 
 		if (Config.instance.announcePermanentDeaths && player.GetLevel() >= Config.instance.announcePermanentDeathsMinLevel) {
-			SendWorldMessage(`${player.GetName()} was killed by ${killer.GetName()} at level ${player.GetLevel()} (${char.formatChallenges()} Challenge).`);
+			SendWorldMessage(`${this.getColoredName(player)} was killed by ${killer.GetName()} at level ${player.GetLevel()} (${char.formatChallenges()} Challenge).`);
 		}
 		this.onPlayerDied(player);
 	}
@@ -464,9 +465,9 @@ class ChallengeModes {
 
 		if (Config.instance.announcePermanentDeaths && killed.GetLevel() >= Config.instance.announcePermanentDeathsMinLevel) {
 			if (killer.GetGUID() === killed.GetGUID()) {
-				SendWorldMessage(`${killed.GetName()} died at level ${killed.GetLevel()} (${char.formatChallenges()} Challenge).`);
+				SendWorldMessage(`${this.getColoredName(killed)} died at level ${killed.GetLevel()} (${char.formatChallenges()} Challenge).`);
 			} else {
-				SendWorldMessage(`${killed.GetName()} was killed by player ${killer.GetName()} at level ${killed.GetLevel()} (${char.formatChallenges()} Challenge).`);
+				SendWorldMessage(`${this.getColoredName(killed)} was killed by player ${killer.GetName()} at level ${killed.GetLevel()} (${char.formatChallenges()} Challenge).`);
 			}
 		}
 
@@ -598,6 +599,32 @@ class ChallengeModes {
 		const playerStr = player != undefined ? ` [${player.GetName()} (${player.GetGUID()})]` : "";
 		f.write(`[${date.year}-${date.month + 1}-${date.mday} ${date.hour}:${date.min}:${date.sec} UTC]${playerStr} ${text}\n`);
 		f.close();
+	}
+
+	private getColoredName(player: Character | Player): string {
+		let name: string;
+		let classId: number;
+		if (player instanceof Character) {
+			name = player.name;
+			classId = player.class;
+		} else {
+			name = player.GetName();
+			classId = player.GetClass();
+		}
+
+		const colors = {
+			1: "C69B6D",
+			2: "F48CBA",
+			3: "AAD372",
+			4: "FFF468",
+			5: "FFFFFF",
+			6: "C41E3A",
+			7: "0070DD",
+			8: "3FC7EB",
+			9: "8788EE",
+			11: "FF7C0A",
+		};
+		return `|CFF${colors[classId]}${name}|r`;
 	}
 }
 
