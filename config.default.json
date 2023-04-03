@@ -3,6 +3,7 @@
 	"maxLevel": 80,
 	"elunaDatabase": "acore_eluna",
 	"announcePermanentDeaths": true,
+	"announcePermanentDeathsMinLevel": 1,
 	"downloadUrl": "",
 	"hallOfFameMaxResults": 250,
 	"shrineBuffs": [2000000, 2000001, 2000002, 2000003, 2000004, 2000005, 2000006],
