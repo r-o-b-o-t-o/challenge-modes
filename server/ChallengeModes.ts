@@ -284,13 +284,39 @@ class ChallengeModes {
 		}, 3000); // Wait for a few seconds, otherwise the name gets written again since the char data is saved when the player is disconnected
 	}
 
-	private onPlayerGiveXP(event: PlayerEvents, player: Player, amount: number, victim: Unit): number {
-		if (this.isPlayerEnlisted(player)) {
-			const char = this.getCharacter(player);
-			if (char.isBloodthirsty() && (victim === null || victim.ToPlayer() !== null)) {
+	private onPlayerGiveXP(event: PlayerEvents, player: Player, amount: number, victim: Unit, killer: Player): number {
+		if (!this.isPlayerEnlisted(player)) {
+			return amount;
+		}
+
+		if (victim) {
+			// Prevent mob-tagging power-leveling
+			const attackers = victim.GetAttackers();
+			const threatList = victim.GetThreatList() ?? [];
+			const units = [...attackers, ...threatList].filter((val, idx, ar) => idx === ar.findIndex(u => u.GetGUID() === val.GetGUID()));
+			const isGroupedWithPlayer = (unit: Unit) => {
+				const asPlayer = unit.ToPlayer();
+				if (asPlayer) {
+					return asPlayer.IsInSameGroupWith(player);
+				}
+				const owner = unit.GetOwner();
+				const ownerAsPlayer = owner?.ToPlayer();
+				if (ownerAsPlayer) {
+					return ownerAsPlayer.IsInSameGroupWith(player);
+				}
+				return false;
+			};
+
+			if (units.some(unit => !isGroupedWithPlayer(unit))) {
 				return 0;
 			}
 		}
+
+		const char = this.getCharacter(player);
+		if (char.isBloodthirsty() && (victim === null || victim.ToPlayer() !== null)) {
+			return 0;
+		}
+
 		return amount;
 	}
 
