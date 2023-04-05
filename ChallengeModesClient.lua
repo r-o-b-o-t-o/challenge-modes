@@ -106,19 +106,26 @@ else
 	textColor = "FF00165E"
 end
 
-local function CheckAddonVersion(version)
-	version = gsub(version, "%.", "_")
-
+local function TestTexture(textureName)
 	challengeModes.textureTestFrame = CreateFrame("Frame", "ChallengeModesTextureTestFrame", UIParent)
 	challengeModes.textureTestFrame:SetSize(64, 64)
 	challengeModes.textureTestFrame:SetPoint("CENTER")
 	challengeModes.textureTestFrame:Hide()
 
 	challengeModes.textureTestFrame.texture = challengeModes.textureTestFrame:CreateTexture()
-	local ret = challengeModes.textureTestFrame.texture:SetTexture("Interface/ChallengeModes/ChallengeModesVersion" .. version)
+	local ret = challengeModes.textureTestFrame.texture:SetTexture(textureName)
 	challengeModes.textureTestFrame = nil
 
 	return ret == 1
+end
+
+local function IsPatchInstalled()
+	return TestTexture("Interface/ChallengeModes/ChallengeModes")
+end
+
+local function CheckAddonVersion(version)
+	version = gsub(version, "%.", "_")
+	return TestTexture("Interface/ChallengeModes/ChallengeModesVersion" .. version)
 end
 
 local function CreateTexture(width, height, coords, layer, anchor, x, y, texture, parent)
@@ -799,12 +806,19 @@ challengeModes.hofWindow.btnNext:SetScript("OnClick", function()
 end)
 
 function Handlers.CheckAddonVersion(player, addonVersion)
-	if not CheckAddonVersion(addonVersion) then
+	if not IsPatchInstalled() then
+		AIO.Handle(channelName, "notifyInstallAddon", false)
+	elseif not CheckAddonVersion(addonVersion) then
 		AIO.Handle(channelName, "notifyInstallAddon", true)
 	end
 end
 
 function Handlers.OpenBannerUI(player, addonVersion, eligible)
+	if not IsPatchInstalled() then
+		AIO.Handle(channelName, "notifyInstallAddon", false)
+		AIO.Handle(channelName, "closeBannerUI")
+		return
+	end
 	if not CheckAddonVersion(addonVersion) then
 		AIO.Handle(channelName, "notifyInstallAddon", true)
 		AIO.Handle(channelName, "closeBannerUI")
@@ -925,6 +939,11 @@ function Handlers.OpenDeathUI(player, challenge, playedTime, rank)
 end
 
 function Handlers.OpenHallOfFameUI(player, addonVersion, maxResults)
+	if not IsPatchInstalled(addonVersion) then
+		AIO.Handle(channelName, "notifyInstallAddon", false)
+		AIO.Handle(channelName, "closeHallOfFameUI")
+		return
+	end
 	if not CheckAddonVersion(addonVersion) then
 		AIO.Handle(channelName, "notifyInstallAddon", true)
 		AIO.Handle(channelName, "closeHallOfFameUI")
