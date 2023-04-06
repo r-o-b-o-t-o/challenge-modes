@@ -272,7 +272,9 @@ class ChallengeModes {
 		char.save();
 		this.characters.delete(player);
 
-		this.log("Deleting character", player);
+		if (Config.instance.logging.deleting) {
+			this.log("Deleting character", player);
+		}
 		RunCommand(`ban character ${player.GetName()} -1 Challenge Mode Death`);
 		CreateLuaEvent(() => {
 			CharDBExecute(`
@@ -363,7 +365,9 @@ class ChallengeModes {
 		char.playedTime = player.GetTotalPlayedTime();
 
 		if (player.GetLevel() >= Config.instance.maxLevel) {
-			this.log(`Challenge ${char.formatChallenges()} completed`, GetPlayerByGUID(char.guid));
+			if (Config.instance.logging.completed) {
+				this.log(`Challenge ${char.formatChallenges()} completed`, GetPlayerByGUID(char.guid));
+			}
 			char.completed = true;
 			this.characters.delete(player);
 			// char.save() is async, and we need the char to be saved in order to compute the rank correctly,
@@ -413,7 +417,9 @@ class ChallengeModes {
 				if (items.length > 0) {
 					const values = items.map(item => [item, 1]).flat();
 					SendMail(Character.formatChallenges(challenge) + " Challenge Rewards", body, char.guid, Config.instance.rewardsSender ?? 0, MailStationery.MAIL_STATIONERY_GM, 0, 0, 0, ...values);
-					this.log(`Sent rewards for ${Character.formatChallenges(challenge)}`, player);
+					if (Config.instance.logging.rewards) {
+						this.log(`Sent rewards for ${Character.formatChallenges(challenge)}`, player);
+					}
 				}
 			}
 		}
@@ -501,7 +507,9 @@ class ChallengeModes {
 	}
 
 	private onPlayerDied(player: Player) {
-		this.log("Died", player);
+		if (Config.instance.logging.died) {
+			this.log("Died", player);
+		}
 		const char = this.getCharacter(player);
 		char.dead = true;
 		char.updateCharacterData(player);
@@ -579,7 +587,9 @@ class ChallengeModes {
 			char.addChallenge(challenge);
 		}
 		char.save();
-		this.log(`Enlisted for ${Character.formatChallenges(challenge)}`, player);
+		if (Config.instance.logging.enlisted) {
+			this.log(`Enlisted for ${Character.formatChallenges(challenge)}`, player);
+		}
 
 		AIO.Handle(player, Config.instance.channelName, "Enlisted", EChallengeMode[challenge]);
 
@@ -615,15 +625,21 @@ class ChallengeModes {
 	}
 
 	private log(text: string, player?: Player) {
-		const [dir] = string.match(debug.getinfo(1).source, "@?(.*/)");
-		const [f, _, __] = io.open(dir + "/challengemodes.log", "a");
+		const [scriptDir] = string.match(debug.getinfo(1).source, "@?(.*/)");
+		const logDir = Utils.isPathAbsolute(Config.instance.logging.directory)
+			? Config.instance.logging.directory
+			: scriptDir + Utils.getPathSeparator() + Config.instance.logging.directory;
+		const date = timestampToDate(parseInt(GetGameTime() + ""));
+		const month = (date.month + 1).toString().padStart(2, "0");
+		const day = date.mday.toString().padStart(2, "0");
+		const fileDate = `${date.year}_${month}_${day}`;
+		const [f, _, __] = io.open(logDir + Utils.getPathSeparator() + `challengemodes_${fileDate}.log`, "a");
 		if (!f) {
 			return;
 		}
 
-		const date = timestampToDate(parseInt(GetGameTime() + ""));
 		const playerStr = player != undefined ? ` [${player.GetName()} (${player.GetGUID()})]` : "";
-		f.write(`[${date.year}-${date.month + 1}-${date.mday} ${date.hour}:${date.min}:${date.sec} UTC]${playerStr} ${text}\n`);
+		f.write(`[${date.year}-${month}-${day} ${date.hour.toString().padStart(2, "0")}:${date.min.toString().padStart(2, "0")}:${date.sec.toString().padStart(2, "0")} UTC]${playerStr} ${text}\n`);
 		f.close();
 	}
 

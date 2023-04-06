@@ -24,4 +24,27 @@ export default class Utils {
 		}
 		player.SendNotification(msg);
 	}
+
+	public static testRegex(str: string, pattern: string): boolean {
+		const res = string.match(str, pattern);
+		if (!res) {
+			return false;
+		}
+		return res.length > 0;
+	}
+
+	public static getPathSeparator(): string {
+		return string.sub(_G.package.config, 1, 1);
+	}
+
+	public static getOS(): "win" | "unix" {
+		return this.getPathSeparator() === "\\" ? "win" : "unix";
+	}
+
+	public static isPathAbsolute(path: string): boolean {
+		if (this.getOS() === "win") {
+			return this.testRegex(path, "^[a-zA-Z]:[\\/]");
+		}
+		return path.startsWith("/");
+	}
 }

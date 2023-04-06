@@ -15,6 +15,14 @@ export default class Config {
 	public shrineBuffChangeTime: number;
 	public rewards: { [key: string]: { [key: string]: number[] } };
 	public rewardsSender: number | null;
+	public logging: {
+		directory: string;
+		enlisted: boolean;
+		died: boolean;
+		deleting: boolean;
+		completed: boolean;
+		rewards: boolean;
+	};
 
 	public static read(): void {
 		const [file, err, errCode] = io.open(this.getDirectory() + "/../config.json", "r");

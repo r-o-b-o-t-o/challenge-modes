@@ -9,6 +9,14 @@
 	"hallOfFameMaxResults": 250,
 	"shrineBuffs": [2000000, 2000001, 2000002, 2000003, 2000004, 2000005, 2000006],
 	"shrineBuffChangeTime": 3600,
+	"logging": {
+		"directory": "../logs",
+		"enlisted": true,
+		"died": true,
+		"deleting": true,
+		"completed": true,
+		"rewards": true
+	},
 	"rewards": {
 		"1": {
 			"_": "Warrior",
