@@ -15,7 +15,8 @@
 		"died": true,
 		"deleting": true,
 		"completed": true,
-		"rewards": true
+		"rewards": true,
+		"mobTagging": 10
 	},
 	"rewards": {
 		"1": {

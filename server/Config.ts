@@ -22,6 +22,7 @@ export default class Config {
 		deleting: boolean;
 		completed: boolean;
 		rewards: boolean;
+		mobTagging: boolean | number;
 	};
 
 	public static read(): void {

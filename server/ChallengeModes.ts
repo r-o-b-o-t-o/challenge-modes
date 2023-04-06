@@ -34,7 +34,8 @@ class ChallengeModes {
 	private readonly hallOfFame: HallOfFame;
 	private readonly bannerGobj: ChallengeGameObject;
 	private readonly hallOfFameGobj: ChallengeGameObject;
-	private characters: PlayerMap<Character>; // Key: character's GUID converted to string
+	private characters: PlayerMap<Character>;
+	private mobTaggingCounter: PlayerMap<{ value: number; taggers: string[]; cancelId?: number; }>;
 	private shrineBuff: number;
 
 	public constructor() {
@@ -54,6 +55,7 @@ class ChallengeModes {
 		this.hallOfFame = new HallOfFame();
 		this.bannerGobj = new ChallengeGameObject(15, "CloseBannerUI");
 		this.hallOfFameGobj = new ChallengeGameObject(15, "CloseHallOfFameUI");
+		this.mobTaggingCounter = new PlayerMap();
 		this.loadCharacters();
 		this.registerBannerEvents();
 		this.registerPlayerEvents();
@@ -286,7 +288,7 @@ class ChallengeModes {
 		}, 3000); // Wait for a few seconds, otherwise the name gets written again since the char data is saved when the player is disconnected
 	}
 
-	private onPlayerGiveXP(event: PlayerEvents, player: Player, amount: number, victim: Unit, killer: Player): number {
+	private onPlayerGiveXP(event: PlayerEvents, player: Player, amount: number, victim: Unit): number {
 		if (!this.isPlayerEnlisted(player)) {
 			return amount;
 		}
@@ -296,20 +298,52 @@ class ChallengeModes {
 			const attackers = victim.GetAttackers();
 			const threatList = victim.GetThreatList() ?? [];
 			const units = [...attackers, ...threatList].filter((val, idx, ar) => idx === ar.findIndex(u => u.GetGUID() === val.GetGUID()));
-			const isGroupedWithPlayer = (unit: Unit) => {
+			const getUnitAsPlayer = (unit: Unit) => {
 				const asPlayer = unit.ToPlayer();
 				if (asPlayer) {
-					return asPlayer.IsInSameGroupWith(player);
+					return asPlayer;
 				}
 				const owner = unit.GetOwner();
 				const ownerAsPlayer = owner?.ToPlayer();
 				if (ownerAsPlayer) {
-					return ownerAsPlayer.IsInSameGroupWith(player);
+					return ownerAsPlayer;
+				}
+				return null;
+			};
+			const isGroupedWithPlayer = (unit: Unit) => {
+				const asPlayer = getUnitAsPlayer(unit);
+				if (asPlayer) {
+					return asPlayer.IsInSameGroupWith(player);
 				}
 				return false;
 			};
 
 			if (units.some(unit => !isGroupedWithPlayer(unit))) {
+				if (Config.instance.logging.mobTagging !== false && (Config.instance.logging.mobTagging === true || Config.instance.logging.mobTagging > 0)) {
+					let counter = this.mobTaggingCounter.get(player);
+					if (!counter) {
+						counter = { value: 0, taggers: [] };
+					}
+					counter.value += 1;
+					for (const unit of units) {
+						const asPlayer = getUnitAsPlayer(unit);
+						if (asPlayer && !counter.taggers.includes(asPlayer.GetName())) {
+							counter.taggers.push(asPlayer.GetName());
+						}
+					}
+					if (Config.instance.logging.mobTagging === true || counter.value >= Config.instance.logging.mobTagging) {
+						counter.value = 0;
+						this.log(`Mob-tagging (${Config.instance.logging.mobTagging === true ? 1 : Config.instance.logging.mobTagging} creatures) by ${counter.taggers.join(", ")}`, player);
+					}
+
+					if (counter.cancelId != undefined) {
+						RemoveEventById(counter.cancelId);
+					}
+					const guid = player.GetGUID();
+					counter.cancelId = CreateLuaEvent(() => { this.mobTaggingCounter.delete(guid) }, 3600000);
+					this.mobTaggingCounter.set(guid, counter);
+				}
+
 				return 0;
 			}
 		}
