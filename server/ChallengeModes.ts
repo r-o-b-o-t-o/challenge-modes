@@ -21,6 +21,7 @@ class ChallengeModes {
 	private readonly CMSG_GUILD_BANK_SWAP_ITEMS = 0x3E9;
 	private readonly CMSG_GUILD_BANK_DEPOSIT_MONEY = 0x3EC;
 	private readonly CMSG_GUILD_BANK_WITHDRAW_MONEY = 0x3ED;
+	private readonly CMSG_PET_LEARN_TALENT = 0x47A;
 
 	// Ids
 	private readonly allianceGobjEntry = 2000000;
@@ -164,6 +165,7 @@ class ChallengeModes {
 		for (const opcode of opcodes) {
 			RegisterPacketEvent(opcode, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.cancelPacket(...args));
 		}
+		RegisterPacketEvent(this.CMSG_PET_LEARN_TALENT, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onPetLearnTalent(...args));
 	}
 
 	private onAllianceBannerUse(event: GameObjectEvents, gobj: GameObject, player: Player) {
@@ -387,6 +389,15 @@ class ChallengeModes {
 			// Reset talents instantly for Ironman players if they try to use their points
 			player.ResetTalents(true);
 		}
+	}
+
+	private onPetLearnTalent(event: PacketEvents, packet: WorldPacket, player: Player) {
+		const character = this.getCharacter(player);
+		if (character?.isIronman()) {
+			// Prevent learning pet talents on Ironman characters
+			return false;
+		}
+		return true;
 	}
 
 	private onPlayerChangeLevel(event: PlayerEvents, player: Player, oldLevel: number) {
