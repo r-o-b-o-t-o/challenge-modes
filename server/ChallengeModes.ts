@@ -155,6 +155,7 @@ class ChallengeModes {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_KILLED_BY_CREATURE, (...args) => this.onPlayerKilledByCreature(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_KILL_PLAYER, (...args) => this.onPlayerPvPKilled(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_GROUP_INVITE, (...args) => this.onPlayerCanGroupInvite(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_SPELL_CAST, (...args) => this.onPlayerCastSpell(...args));
 	}
 
 	private registerPacketEvents() {
@@ -315,7 +316,7 @@ class ChallengeModes {
 			const isGroupedWithPlayer = (unit: Unit) => {
 				const asPlayer = getUnitAsPlayer(unit);
 				if (asPlayer) {
-					return asPlayer.IsInSameGroupWith(player);
+					return asPlayer.IsInSameRaidWith(player);
 				}
 				return false;
 			};
@@ -600,6 +601,14 @@ class ChallengeModes {
 		}
 
 		return true;
+	}
+
+	private onPlayerCastSpell(event: PlayerEvents, player: Player, spell: Spell, skipCheck: boolean) {
+		const target = spell.GetTarget()?.ToPlayer();
+		if (target && this.isPlayerEnlisted(target) && target.GetTeam() === player.GetTeam() && !player.IsInSameRaidWith(target)) {
+			// Prevent power-leveling enlisted players by buffing or healing
+			spell.Cancel();
+		}
 	}
 
 	private cancelPacket(event: PacketEvents, packet: WorldPacket, player: Player): boolean {
