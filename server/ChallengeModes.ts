@@ -156,6 +156,7 @@ class ChallengeModes {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_KILL_PLAYER, (...args) => this.onPlayerPvPKilled(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_GROUP_INVITE, (...args) => this.onPlayerCanGroupInvite(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_SPELL_CAST, (...args) => this.onPlayerCastSpell(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_COMMAND, (...args) => this.onCommand(...args));
 	}
 
 	private registerPacketEvents() {
@@ -612,6 +613,66 @@ class ChallengeModes {
 		}
 	}
 
+	private onCommand(event: PlayerEvents, player: Player, command: string, chatHandler: ChatHandler) {
+		if (player && player.GetGMRank() < 2) {
+			return true;
+		}
+
+		const split = command.split(" ").filter(arg => arg.trim() !== "");
+		if (split.length > 1 && (split[0].toLowerCase() === "challenges" || split[0].toLowerCase() === "challenge" || split[0].toLowerCase() === "chall")) {
+			split.shift();
+			const cmd = split.shift().toLowerCase();
+			const char = this.getCharacter(player);
+
+			if (["complete", "completion", "completed"].includes(cmd)) {
+				char?.getRank((rank) => {
+					const player = GetPlayerByGUID(char.guid);
+					if (player) {
+						AIO.Handle(player, Config.instance.channelName, "OpenCompletedUI", char.getChallengesArray(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), rank);
+					}
+				});
+				return false;
+			}
+			if (["die", "dead", "death"].includes(cmd)) {
+				char?.getRank((rank) => {
+					const player = GetPlayerByGUID(char.guid);
+					if (player) {
+						AIO.Handle(player, Config.instance.channelName, "OpenDeathUI", char.getChallengesArray(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), rank);
+					}
+				});
+				return false;
+			}
+			if (["online", "list", "count"].includes(cmd)) {
+				const counts = {};
+				let total = 0;
+
+				for (const key of this.characters.keys()) {
+					const char = this.characters.get(key);
+					const player = GetPlayerByGUID(char.guid);
+					if (player !== null) {
+						++total;
+						for (const mode of allChallengeModes()) {
+							if (char.hasChallenge(mode)) {
+								counts[mode] = (counts[mode] ?? 0) + 1;
+							}
+						}
+					}
+				}
+
+				let str = "";
+				for (const mode of allChallengeModes()) {
+					str += EChallengeMode[mode] + ": " + (counts[mode] ?? 0) + "\n";
+				}
+				str += "Online: " + total;
+				chatHandler.SendSysMessage(str);
+				return false;
+			}
+
+			return true;
+		}
+	}
+
+
 	private cancelPacket(event: PacketEvents, packet: WorldPacket, player: Player): boolean {
 		return !this.isPlayerEnlisted(player);
 	}
@@ -676,6 +737,9 @@ class ChallengeModes {
 	}
 
 	private getCharacter(player: Player): Character {
+		if (!player) {
+			return null;
+		}
 		return this.characters.get(player);
 	}
 

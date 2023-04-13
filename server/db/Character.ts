@@ -57,10 +57,14 @@ export default class Character {
 		this.challenge = bit32.band(this.challenge, bit32.bnot(challenge));
 	}
 
-	public formatChallenges(): string {
-		const challenges = allChallengeModes()
+	public getChallengesArray() {
+		return allChallengeModes()
 			.filter(challenge => this.hasChallenge(challenge))
 			.map(challenge => EChallengeMode[challenge]);
+	}
+
+	public formatChallenges(): string {
+		const challenges = this.getChallengesArray();
 		return challenges.join(" + ");
 	}
 
