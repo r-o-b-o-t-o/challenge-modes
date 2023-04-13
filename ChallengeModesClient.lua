@@ -106,6 +106,213 @@ else
 	textColor = "FF00165E"
 end
 
+local locales = {}
+locales["enUS"] = {
+	Main_Title = "You may choose to face greater challenges during your adventures",
+	Main_Desc1 = "In this mode, your demise will bring a permanent end to your adventure.\n\nIf you have what it takes and progress to the maximum level without dying, you will find unique rewards and eternal glory at the end of this challenge!",
+	Main_Desc2 = "In this mode, you cannot use talents and are allowed to equip only |CFF9D9D9DPoor|C" .. textColor .. " and |CFFFFFFFFCommon|C" .. textColor .. " equipment.\n\nArmed only with nerves of steel and unshakable resolve, reach the maximum level to attain unique rewards and eternal glory!",
+	Main_Desc3 = "In this mode, you can only gain experience by defeating creatures.\n\nMake it to the maximum level in brutal and restless fashion in order to find unique rewards and eternal glory!",
+	Main_ChallengeName = "{1} Challenge",
+	Main_Enlist = "Enlist",
+	Main_Hardcore = "Hardcore",
+	Main_Ironman = "Ironman",
+	Main_Bloodthirsty = "Bloodthirsty",
+	Confirm_Permadeath = "Any death is permanent and will delete your character",
+	Confirm_Equipment = "Can only wear |CFF9D9D9DPoor|CFFCD0000 and |CFFFFFFFFCommon|CFFCD0000 equipment",
+	Confirm_Talents = "Cannot use talent points",
+	Confirm_XP = "Can only gain experience from defeating creatures",
+	Confirm_Party = "Can only party up with players with the same challenges",
+	Confirm_Trade = "Can only trade with players with the same challenges",
+	Confirm_Mail = "Cannot receive items or money by mail",
+	Confirm_AH = "Cannot use Auction Houses",
+	Confirm_GB = "Cannot use Guild Banks",
+	Confirm_Disable = "Cannot be turned off",
+	Confirm_HallOfFame = "Join the Hall of Fame",
+	Confirm_Rewards = "Receive unique rewards when reaching maximum level",
+	Confirm_PermaDeathMaxLvl = "Death is not permanent anymore at maximum level",
+	Confirm_Combo = "You can enlist for multiple challenges at the same time",
+	Confirm_Cancel = "Cancel",
+	HoF_Title = "In remembrance of the bravest adventurers",
+	HoF_Completed = "Completed",
+	HoF_Dead = "Failed",
+	HoF_Active = "Active",
+	HoF_MyCharsOnly = "My Characters Only",
+	HoF_Name = "Name",
+	HoF_Level = "Level",
+	HoF_Rank = "Ranking",
+	Death_Title = "YOU DIED",
+	Completed_Title = "CONGRATULATIONS!",
+	Completed_Text = "{1} faced many challenges,\nbut overcame them through\nsheer will and determination\n\nPlayed for {2}\n\n{3} rank: #{4}",
+	Death_Logout = "Logout",
+	Death_Text = "{1}'s journey ends here\n\nDied at level {2}\nPlayed for {3}\n\n{4} rank: #{5}",
+	Splash_Text = "Enlisted for {1} Challenge!",
+	Err_ChallengeActive = "You are already enlisted for this challenge.",
+	Err_Exp = "Only available to level 1 characters with no experience points.\nCreate a fresh character to start the challenge.",
+	Err_Items = "You possess items that were not included in your starting equipment.\nGet rid of them or create a fresh character to start the challenge.",
+	Err_Money = "You have money in your inventory.\nGet rid of it or create a fresh character to start the challenge.",
+	Err_Mail = "You have pending mails.\nCreate a fresh character to start the challenge.",
+	Err_Deaths = "This character has died before...\nCreate a fresh character to start the challenge.",
+	Err_Range = "You are too far away."
+}
+locales["enGB"] = locales["enUS"]
+locales["frFR"] = {
+	Main_Title = "Vous pouvez choisir de relever des défis au cours de vos aventures",
+	Main_Desc1 = "Dans ce mode, votre décès mettra un terme définitif à votre aventure.\n\nSi vous avez assez de courage et progressez jusqu'au niveau maximum sans mourir, vous trouverez des récompenses uniques et une gloire éternelle à la fin de ce défi !",
+	Main_Desc2 = "Dans ce mode, vous ne pouvez pas utiliser les points de talent et vous ne pouvez équiper que des objets de qualité |CFF9D9D9DMédiocre|C" .. textColor .. " ou |CFFFFFFFFNormale|C" .. textColor .. ".\n\nArmé uniquement de nerfs d'acier et d'une détermination inébranlable, atteignez le niveau maximum pour obtenir des récompenses uniques et une gloire éternelle !",
+	Main_Desc3 = "Dans ce mode, vous gagnez de l'expérience seulement en tuant des créatures.\n\nAtteignez le niveau maximum de manière brutale afin d'acquérir des récompenses uniques et une gloire éternelle !",
+	Main_ChallengeName = "Défi {1}",
+	Main_Enlist = "S'inscrire",
+	Main_Hardcore = "Hardcore",
+	Main_Ironman = "Homme de Fer",
+	Main_Bloodthirsty = "Sanguinaire",
+	Confirm_Permadeath = "La mort est permanente et entraîne une suppression du personnage",
+	Confirm_Equipment = "Vous pourrez seulement porter de l'équipement de qualité |CFF9D9D9DMédiocre|CFFCD0000 ou |CFFFFFFFFNormale|CFFCD0000",
+	Confirm_Talents = "Vous ne pourrez pas utiliser de points de talents",
+	Confirm_XP = "Vous pourrez seulement gagner de l'expérience en tuant des créatures",
+	Confirm_Party = "Vous pourrez seulement être en groupe avec les joueurs qui ont le même défi",
+	Confirm_Trade = "Vous pourrez seulement échanger avec les joueurs qui ont le même défi",
+	Confirm_Mail = "Vous ne pourrez pas recevoir d'objets ni d'argent par courrier",
+	Confirm_AH = "Vous ne pourrez pas utiliser l'hôtel des ventes",
+	Confirm_GB = "Vous ne pourrez pas utiliser les banques de guildes",
+	Confirm_Disable = "Ne peut pas être désactivé",
+	Confirm_HallOfFame = "Rejoignez le Panthéon",
+	Confirm_Rewards = "Recevez des récompenses uniques en atteignant le niveau maximum",
+	Confirm_PermaDeathMaxLvl = "La mort n'est plus permanente au niveau maximum",
+	Confirm_Combo = "Vous pouvez vous inscrire pour plusieurs défis simultanément",
+	Confirm_Cancel = "Annuler",
+	HoF_Title = "En mémoire des plus braves aventuriers",
+	HoF_Completed = "Terminé",
+	HoF_Dead = "Échoué",
+	HoF_Active = "Actif",
+	HoF_MyCharsOnly = "Mes Personnages Seulement",
+	HoF_Name = "Nom",
+	HoF_Level = "Niv.",
+	HoF_Rank = "Rang",
+	Death_Title = "VOUS ÊTES MORT",
+	Completed_Title = "FÉLICITATIONS!",
+	Completed_Text = "{1} a fait face à de\nnombreux défis, mais les a surmontés\ngrâce à sa volonté et sa détermination\n\n{2} de jeu\n\nRang {3} : #{4}",
+	Death_Logout = "Déconnexion",
+	Death_Text = "L'aventure de {1} s'arrête ici\n\nMort au niveau {2}\n{3} de jeu\n\nRang {4} : #{5}",
+	Splash_Text = "Inscrit pour le défi {1} !",
+	Err_ChallengeActive = "Vous êtes déjà inscrit à ce défi.",
+	Err_Exp = "Disponible seulement pour les personnages niveau 1 sans points d'expérience.\nCréez un nouveau personnage pour commencer le défi.",
+	Err_Items = "Vous avez de l'équipement qui n'était pas inclus dans votre inventaire de départ.\nDébarrassez-vous en ou créez un nouveau personnage pour commencer le défi.",
+	Err_Money = "Vous avez de l'argent dans votre inventaire.\nDébarrassez-vous en ou créez un nouveau personnage pour commencer le défi.",
+	Err_Mail = "Vous avez des courriers en attente.\nCréez un nouveau personnage pour commencer le défi.",
+	Err_Deaths = "Ce personnage a déjà décédé...\nCréez un nouveau personnage pour commencer le défi.",
+	Err_Range = "Vous êtes trop loin."
+}
+locales["deDE"] = {
+	Main_Title = "Ihr könnt zusätzliche Herausforderungen für Eure Abenteuer wählen",
+	Main_Desc1 = "In diesem Modus wird Euer Ableben das endgültige Ende Eures Abenteuers bedeuten.\n\nFalls Ihr es schafft und das maximale Level erreicht ohne zu sterben, werdet Ihr einzigartige Belohnungen und ewigen Ruhm bei Abschluss der Herausforderung erhalten!",
+	Main_Desc2 = "In diesem Modus könnt Ihr nur |CFF9D9D9DSchlechte|C" .. textColor .. " und |CFFFFFFFFVerbreitete|C" .. textColor .. " Gegenstände benutzen.\n\nBewaffnet nur mit Nerven aus Stahl und unerschütterlicher Entschlossenheit erhaltet Ihr einzigartige Belohnungen und ewigen Ruhm für das Erreichen des Maximallevels!",
+	Main_Desc3 = "In diesem Modus könnt Ihr nur Erfahrung sammeln, indem Ihr Gegner besiegt.\n\nErreicht auf brutale und rastlose Weise die maximale Stufe, um einzigartige Belohnungen und ewigen Ruhm zu finden!",
+	Main_ChallengeName = "{1} Modus",
+	Main_Enlist = "Anmeldung",
+	Main_Hardcore = "Hardcore",
+	Main_Ironman = "Ironman",
+	Main_Bloodthirsty = "Blutdurstig",
+	Confirm_Permadeath = "Der Tod ist dauerhaft und löscht Euren Charakter",
+	Confirm_Equipment = "Man kann nur |CFF9D9D9DSchlechte|CFFCD0000 und |CFFFFFFFFVerbreitete|CFFCD0000 Ausrüstung benutzen",
+	Confirm_Talents = "Man kann keine Talentpunkte nutzen",
+	Confirm_XP = "Man kann ausschließlich durch das Töten von Gegnern Erfahrung erhalten.",
+	Confirm_Party = "Man kann nur mit Spielern in eine Gruppe, die genau die gleichen Herausforderungen haben",
+	Confirm_Trade = "Man kann nur mit Spielern handeln, die genau die gleichen Herausforderungen haben",
+	Confirm_Mail = "Man kann keine Gegenstände oder Gold per Mail erhalten",
+	Confirm_AH = "Man kann das Auktionshaus nicht nutzen",
+	Confirm_GB = "Man kann die Gildenbank nicht nutzen",
+	Confirm_Disable = "Kann nicht deaktiviert werden",
+	Confirm_HallOfFame = "Werdet Teil der Ruhmeshalle",
+	Confirm_Rewards = "Erhalte einzigartige Belohnungen, wenn Ihr das Maximallevel erreicht",
+	Confirm_PermaDeathMaxLvl = "Der Tod ist nicht mehr dauerhaft, wenn Ihr das Maximallevel erreicht",
+	Confirm_Combo = "Ihr könnt euch für mehrere Herausforderungen gleichzeitig anmelden",
+	Confirm_Cancel = "Abbrechen",
+	HoF_Title = "In Erinnerung an die tapfersten Abenteurer",
+	HoF_Completed = "Beendet",
+	HoF_Dead = "Fehlgeschlagen",
+	HoF_Active = "Aktiv",
+	HoF_MyCharsOnly = "Nur meine Charaktere",
+	HoF_Name = "Name",
+	HoF_Level = "Level",
+	HoF_Rank = "Rang",
+	Death_Title = "IHR SEIT TOT",
+	Completed_Title = "GLÜCKWUNSCH!",
+	Completed_Text = "{1} hat vielen Herausforderungen\ngetrotzt, und sie durch\nbloßen Willen und\nEntschlossenheit bestanden.\n\nSpielzeit: {2}\n\n{3} Rang: #{4}",
+	Death_Logout = "Ausloggen",
+	Death_Text = "{1}'s Reise endet hier\n\nGestorben auf Level {2}\nSpielzeit: {3}\n\n{4} Rang: #{5}",
+	Splash_Text = "Angemeldet für die {1} Herausforderung!",
+	Err_ChallengeActive = "Ihr seid bereits für diese Herausforderung angemeldet.",
+	Err_Exp = "Nur möglich für Level 1 Charaktere ohne Erfahrungspunkte.\nErstellt einen neuen Charakter, um die Herausforderung zu starten.",
+	Err_Items = "Ihr verfügt über einen Gegenstand, der nicht zu eurem Startinventar gehört.\nWerdet ihn los oder erstellt einen neuen Charakter, um die Herausforderung zu starten.",
+	Err_Money = "Ihr habt Geld in eurem Inventar.\nWerdet es los oder erstellt einen neuen Charakter, um die Herausforderung zu starten.",
+	Err_Mail = "Es wurde euch Post zugestellt.\nErstellt einen neuen Charakter, um die Herausforderung zu starten.",
+	Err_Deaths = "Dieser Charakter ist bereits gestorben...\nErstellt einen neuen Charakter, um die Herausforderung zu starten.",
+	Err_Range = "Ihr seid zu weit entfernt."
+}
+locales["esES"] = {
+	Main_Title = "Puedes elegir enfrentarte a mayores desafíos en tus aventuras",
+	Main_Desc1 = "En este modo, morir traerá un final permanente a tu aventura.\n\nSi tienes lo que se necesita y llegas al nivel máximo sin morir, encontraras recompensas uúnicas y gloria eterna!",
+	Main_Desc2 = "En este modo, no puedes usar talentos y sólo puedes equipar ítems de calidad |CFF9D9D9DPobre|C" .. textColor .. " y |CFFFFFFFFComún|C" .. textColor .. ".\n\nArmado Sólo con nervios de acero y resolución inquebrantable, alcanza el nivel máximo para recibir recompensas únicas y gloria eterna!",
+	Main_Desc3 = "En este modo, sólo puedes ganar experiencia derrotando enemigos.\n\nAlcanza el nivel máximo en estilo brutal e imparable para encontrar recompensas únicas y gloria eterna!",
+	Main_ChallengeName = "Desafío {1}",
+	Main_Enlist = "Anotarse",
+	Main_Hardcore = "Hardcore",
+	Main_Ironman = "Ironman",
+	Main_Bloodthirsty = "Sanguinario",
+	Confirm_Permadeath = "Toda muerte es permanente y eliminará a tu personaje",
+	Confirm_Equipment = "Sólo puedes usar equipo |CFF9D9D9DPobre|CFFCD0000 y |CFFFFFFFFComún|CFFCD0000",
+	Confirm_Talents = "No puedes usar talentos",
+	Confirm_XP = "Sólo puedes ganar experiencia derrotando enemigos",
+	Confirm_Party = "Sólo puedes hacer grupo con otros en los mismos desafíos",
+	Confirm_Trade = "Sólo puedes comerciar con otros en los mismos desafíos",
+	Confirm_Mail = "No puedes recibir oro o ítems a través del correo",
+	Confirm_AH = "No puedes usar la Casa de Subastas",
+	Confirm_GB = "No puedes usar el Banco de la Hermandad",
+	Confirm_Disable = "No se puede desactivar",
+	Confirm_HallOfFame = "Únete al Salón de la Fama",
+	Confirm_Rewards = "Recibe recompensas uúnicas al nivel máximo",
+	Confirm_PermaDeathMaxLvl = "Morir ya no es permanente al nivel máximo",
+	Confirm_Combo = "Puedes anotarte en múltiples desafíos al mismo tiempo",
+	Confirm_Cancel = "Cancelar",
+	HoF_Title = "En memoria a los mas valientes aventureros",
+	HoF_Completed = "Completado",
+	HoF_Dead = "Fallado",
+	HoF_Active = "Activo",
+	HoF_MyCharsOnly = "Sólo Mis Personajes",
+	HoF_Name = "Nombre",
+	HoF_Level = "Nivel",
+	HoF_Rank = "Ranking",
+	Death_Title = "HAS MUERTO",
+	Completed_Title = "¡FELICITACIONES!",
+	Completed_Text = "{1} enfrentó muchos desafios,\npero los superó con\ndeterminación y voluntad pura\n\nHa jugado {2}\n\n{3} rango: #{4}",
+	Death_Logout = "Salir",
+	Death_Text = "La aventura de {1} ha terminado aquí\n\nMurió al nivel {2}\nHa jugado {3}\n\n{4} rango: #{5}",
+	Splash_Text = "Anotado para el Desafío {1}!",
+	Err_ChallengeActive = "Ya te has anotado para ese desafío.",
+	Err_Exp = "Sólo disponible para personajes nivel 1 sin puntos de experiencia.\nCrea un personaje fresco para iniciar el desafío.",
+	Err_Items = "Posees ítems no incluidos en tu equipamiento inicial.\nDeshaste de ellos o crea un personaje fresco para iniciar el desafío.",
+	Err_Money = "Tienes oro en tu inventario.\nDeshaste de el o crea un personaje fresco para iniciar el desafío.",
+	Err_Mail = "Tienes correo pendiente.\nCrea un personaje fresco para iniciar el desafío.",
+	Err_Deaths = "Este personaje ya ha muerto antes...\nCrea un personaje fresco para iniciar el desafío.",
+	Err_Range = "Estás muy lejos."
+}
+locales["esMX"] = locales["esES"]
+local locale = GetLocale()
+if locales[locale] == nil then
+	locale = "enUS"
+end
+
+local function L(key, ...)
+	local str = locales[locale][key] or locales["enUS"][key] or ""
+
+	local args = {...}
+	for i = 1, #args do
+		str = str:gsub("{" .. i .. "}", args[i])
+	end
+
+	return str
+end
+
 local function TestTexture(textureName)
 	challengeModes.textureTestFrame = CreateFrame("Frame", "ChallengeModesTextureTestFrame", UIParent)
 	challengeModes.textureTestFrame:SetSize(64, 64)
@@ -153,6 +360,23 @@ local function CreateTexture(width, height, coords, layer, anchor, x, y, texture
 	t:SetTexture(texture)
 	t:SetTexCoord(unpack(coords))
 	return t
+end
+
+local function FormatChallengesArray(challenges, maxLen)
+	local str = ""
+	local linebreak = false
+	for i = 1, #challenges do
+		if maxLen ~= nil and not linebreak and string.len(str) >= maxLen then
+			str = str .. "\n"
+			linebreak = true
+		end
+
+		str = str .. L("Main_" .. challenges[i])
+		if i ~= #challenges then
+			str = str .. " + "
+		end
+	end
+	return str
 end
 
 local function SetTooltip(frame, text, frameOwner)
@@ -231,7 +455,7 @@ local function CreateMainWindowScroll(x, title, text, img, btnTextures)
 	btnText:SetFont("Fonts/MORPHEUS.TTF", 18, "OUTLINE")
 	btnText:SetShadowOffset(1, -1)
 	btn:SetFontString(btnText)
-	btn:SetText("Enlist")
+	btn:SetText(L("Main_Enlist"))
 
 	if btnTextures ~= nil then
 		btn:SetNormalTexture(btnTextures.Normal)
@@ -255,9 +479,9 @@ if faction == "Alliance" then
 end
 
 -- Scrolls
-challengeModes.mainWindow.scroll1Button = CreateMainWindowScroll(-214, "Hardcore Challenge", "In this mode, your demise will bring a permanent end to your adventure.\n\nIf you have what it takes and progress to the maximum level without dying, you will find unique rewards and eternal glory at the end of this challenge!", scrollImg1, scrollBtnTextures)
-challengeModes.mainWindow.scroll2Button = CreateMainWindowScroll(0, "Ironman Challenge", "In this mode, you cannot use talents and are allowed to equip only |CFF9D9D9DPoor|C" .. textColor .. " and |CFFFFFFFFCommon|C" .. textColor .. " equipment.\n\nArmed only with nerves of steel and unshakable resolve, reach the maximum level to attain unique rewards and eternal glory!", scrollImg2, scrollBtnTextures)
-challengeModes.mainWindow.scroll3Button = CreateMainWindowScroll(214, "Bloodthirsty Challenge", "In this mode, you can only gain experience by defeating creatures.\n\nMake it to the maximum level in brutal and restless fashion in order to find unique rewards and eternal glory!", scrollImg3, scrollBtnTextures)
+challengeModes.mainWindow.scroll1Button = CreateMainWindowScroll(-214, L("Main_ChallengeName", L("Main_Hardcore")), L("Main_Desc1"), scrollImg1, scrollBtnTextures)
+challengeModes.mainWindow.scroll2Button = CreateMainWindowScroll(0, L("Main_ChallengeName", L("Main_Ironman")), L("Main_Desc2"), scrollImg2, scrollBtnTextures)
+challengeModes.mainWindow.scroll3Button = CreateMainWindowScroll(214, L("Main_ChallengeName", L("Main_Bloodthirsty")), L("Main_Desc3"), scrollImg3, scrollBtnTextures)
 
 -- Title
 CreateTexture(512 * scaleX, 85 * scaleY, atlas.TitleMiddle, "BORDER", "TOP", 0, -34)
@@ -267,7 +491,7 @@ CreateTexture(202 * scaleX, 85 * scaleY, atlas.TitleRight, "ARTWORK", "TOPRIGHT"
 challengeModes.mainWindow.titleText = challengeModes.mainWindow:CreateFontString()
 challengeModes.mainWindow.titleText:SetPoint("TOP", 0, -60)
 challengeModes.mainWindow.titleText:SetFont("Fonts/FRIZQT__.TTF", 16, "OUTLINE")
-challengeModes.mainWindow.titleText:SetText("You may choose to face greater challenges during your adventures")
+challengeModes.mainWindow.titleText:SetText(L("Main_Title"))
 
 -- Header & close button
 CreateTexture(atlas.HeaderSize.W * scaleX, atlas.HeaderSize.H * scaleY, atlas.Header, "OVERLAY", "TOP", 0, atlas.HeaderSize.Y)
@@ -283,7 +507,13 @@ end)
 
 -- Confirm window
 challengeModes.confirmWindow = CreateFrame("Frame", "ChallengeModesConfirmWindow", UIParent)
-challengeModes.confirmWindow:SetSize(560 * scaleX, 438 * scaleY)
+challengeModes.confirmWindow.width = 560
+if locale == "deDE" then
+	challengeModes.confirmWindow.width = 780
+elseif locale == "frFR" then
+	challengeModes.confirmWindow.width = 690
+end
+challengeModes.confirmWindow:SetSize(challengeModes.confirmWindow.width * scaleX, 438 * scaleY)
 challengeModes.confirmWindow:EnableMouse(true)
 challengeModes.confirmWindow:SetPoint("CENTER", 0, 0)
 challengeModes.confirmWindow:Hide()
@@ -299,7 +529,7 @@ challengeModes.confirmWindow:SetScript("OnHide", function()
 	AIO.Handle(channelName, "closeBannerUI")
 end)
 
-CreateTexture(560 * scaleX, 438 * scaleY, atlas.WideScroll, "BACKGROUND", "CENTER", 0, 0, nil, challengeModes.confirmWindow)
+CreateTexture(challengeModes.confirmWindow.width * scaleX, 438 * scaleY, atlas.WideScroll, "BACKGROUND", "CENTER", 0, 0, nil, challengeModes.confirmWindow)
 
 challengeModes.confirmWindow.closeButton = CreateFrame("Button", nil, challengeModes.confirmWindow, "UIPanelCloseButton")
 challengeModes.confirmWindow.closeButton:SetPoint("TOPRIGHT", -4, -4)
@@ -356,7 +586,7 @@ challengeModes.confirmWindow.enlistButtonText = challengeModes.confirmWindow.enl
 challengeModes.confirmWindow.enlistButtonText:SetFont("Fonts/MORPHEUS.TTF", 18, "OUTLINE")
 challengeModes.confirmWindow.enlistButtonText:SetShadowOffset(1, -1)
 challengeModes.confirmWindow.enlistButton:SetFontString(challengeModes.confirmWindow.enlistButtonText)
-challengeModes.confirmWindow.enlistButton:SetText("Enlist")
+challengeModes.confirmWindow.enlistButton:SetText(L("Main_Enlist"))
 if scrollBtnTextures ~= nil then
 	challengeModes.confirmWindow.enlistButton:SetNormalTexture(scrollBtnTextures.Normal)
 	challengeModes.confirmWindow.enlistButton:SetHighlightTexture(scrollBtnTextures.Highlight)
@@ -374,7 +604,7 @@ challengeModes.confirmWindow.cancelButtonText = challengeModes.confirmWindow.can
 challengeModes.confirmWindow.cancelButtonText:SetFont("Fonts/MORPHEUS.TTF", 18, "OUTLINE")
 challengeModes.confirmWindow.cancelButtonText:SetShadowOffset(1, -1)
 challengeModes.confirmWindow.cancelButton:SetFontString(challengeModes.confirmWindow.cancelButtonText)
-challengeModes.confirmWindow.cancelButton:SetText("Cancel")
+challengeModes.confirmWindow.cancelButton:SetText(L("Confirm_Cancel"))
 challengeModes.confirmWindow.cancelButton:SetScript("OnClick", function()
 	challengeModes.confirmWindow:Hide()
 end)
@@ -400,34 +630,34 @@ for _, btn in pairs(scrollButtons) do
 	confirmLinesY = 110
 	confirmLinesGap = 20
 	if challengeName == "Hardcore" then
-		CreateConfirmXLine("Any death is permanent and will delete your character", confirmLineFrame)
+		CreateConfirmXLine(L("Confirm_Permadeath"), confirmLineFrame)
 	end
 	if challengeName == "Ironman" then
-		CreateConfirmXLine("Can only wear |CFF9D9D9DPoor|CFFCD0000 and |CFFFFFFFFCommon|CFFCD0000 equipment", confirmLineFrame)
-		CreateConfirmXLine("Cannot use talent points", confirmLineFrame)
+		CreateConfirmXLine(L("Confirm_Equipment"), confirmLineFrame)
+		CreateConfirmXLine(L("Confirm_Talents"), confirmLineFrame)
 	elseif challengeName == "Bloodthirsty" then
-		CreateConfirmXLine("Can only gain experience from defeating creatures", confirmLineFrame)
+		CreateConfirmXLine(L("Confirm_XP"), confirmLineFrame)
 	end
-	CreateConfirmXLine("Can only party up with players with the same challenges", confirmLineFrame)
-	CreateConfirmXLine("Can only trade with players with the same challenges", confirmLineFrame)
-	CreateConfirmXLine("Cannot send or receive items or money by mail", confirmLineFrame)
-	CreateConfirmXLine("Cannot use Auction Houses", confirmLineFrame)
-	CreateConfirmXLine("Cannot use Guild Banks", confirmLineFrame)
-	CreateConfirmXLine("Cannot be turned off", confirmLineFrame)
+	CreateConfirmXLine(L("Confirm_Party"), confirmLineFrame)
+	CreateConfirmXLine(L("Confirm_Trade"), confirmLineFrame)
+	CreateConfirmXLine(L("Confirm_Mail"), confirmLineFrame)
+	CreateConfirmXLine(L("Confirm_AH"), confirmLineFrame)
+	CreateConfirmXLine(L("Confirm_GB"), confirmLineFrame)
+	CreateConfirmXLine(L("Confirm_Disable"), confirmLineFrame)
 
 	confirmLinesY = confirmLinesY - 10
-	CreateConfirmOKLine("Join the Hall of Fame", confirmLineFrame)
-	CreateConfirmOKLine("Receive unique rewards when reaching maximum level", confirmLineFrame)
+	CreateConfirmOKLine(L("Confirm_HallOfFame"), confirmLineFrame)
+	CreateConfirmOKLine(L("Confirm_Rewards"), confirmLineFrame)
 	if challengeName == "Hardcore" then
-		CreateConfirmOKLine("Death is not permanent anymore at maximum level", confirmLineFrame)
+		CreateConfirmOKLine(L("Confirm_PermaDeathMaxLvl"), confirmLineFrame)
 	end
-	CreateConfirmOKLine("You can enlist for multiple challenges at the same time", confirmLineFrame)
+	CreateConfirmOKLine(L("Confirm_Combo"), confirmLineFrame)
 
 	btn:SetScript("OnClick", function()
 		challengeModes.selectedChallenge = challengeId
 
 		-- Set the title
-		challengeModes.confirmWindow.title:SetText("|C" .. titleColor .. challengeName .. " Challenge" .. "|r")
+		challengeModes.confirmWindow.title:SetText("|C" .. titleColor .. L("Main_ChallengeName", L("Main_" .. challengeName)) .. "|r")
 
 		-- Show the correct lines
 		for _, f in pairs(confirmLineFrames) do
@@ -444,36 +674,37 @@ end
 
 -- Death window
 challengeModes.deathWindow = CreateFrame("Frame", "ChallengeModesDeathWindow", UIParent)
-challengeModes.deathWindow:SetSize(490 * scaleX, 446 * scaleY)
+challengeModes.deathWindow:SetSize(512 * scaleX, 512 * scaleY)
 challengeModes.deathWindow:EnableMouse(true)
 challengeModes.deathWindow:SetPoint("CENTER", 0, 0)
 challengeModes.deathWindow:Hide()
 
-CreateTexture(490 * scaleX, 446 * scaleY, { 0.0, 0.95703125, 0.0, 0.87109375 }, "BACKGROUND", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBackground", challengeModes.deathWindow)
-CreateTexture(490 * scaleX, 446 * scaleY, { 0.0, 0.95703125, 0.0, 0.87109375 }, "BORDER", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBorder", challengeModes.deathWindow)
-CreateTexture(187 * scaleX, 187 * scaleY, { 0.0, 1.0, 0.0, 1.0 }, "ARTWORK", "TOP", 0, -60, "Interface/ChallengeModes/Graveyard" .. random(1, 17), challengeModes.deathWindow)
-CreateTexture(207 * scaleX, 207 * scaleY, { 0.0, 0.80859375, 0.0, 0.80859375 }, "OVERLAY", "TOP", 0, -60 + 9 * scaleY, "Interface/ChallengeModes/SquareBorder", challengeModes.deathWindow)
+CreateTexture(512 * scaleX, 512 * scaleY, { 0.0, 1.0, 0.0, 1.0 }, "BACKGROUND", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBackground", challengeModes.deathWindow)
+CreateTexture(512 * scaleX, 512 * scaleY, { 0.0, 1.0, 0.0, 1.0 }, "BORDER", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBorder", challengeModes.deathWindow)
+CreateTexture(187 * scaleX, 187 * scaleY, { 0.0, 1.0, 0.0, 1.0 }, "ARTWORK", "TOP", 0, -80, "Interface/ChallengeModes/Graveyard" .. random(1, 17), challengeModes.deathWindow)
+CreateTexture(207 * scaleX, 207 * scaleY, { 0.0, 0.80859375, 0.0, 0.80859375 }, "OVERLAY", "TOP", 0, -80 + 9 * scaleY, "Interface/ChallengeModes/SquareBorder", challengeModes.deathWindow)
 
 challengeModes.deathWindow.title = challengeModes.deathWindow:CreateFontString()
-challengeModes.deathWindow.title:SetPoint("TOP", 0, -20)
+challengeModes.deathWindow.title:SetPoint("TOP", 0, -32)
 challengeModes.deathWindow.title:SetFont("Fonts/MORPHEUS.TTF", 22)
-challengeModes.deathWindow.title:SetText("YOU DIED")
+challengeModes.deathWindow.title:SetText(L("Death_Title"))
 
 challengeModes.deathWindow.text = challengeModes.deathWindow:CreateFontString()
-challengeModes.deathWindow.text:SetPoint("BOTTOM", 0, 80)
+challengeModes.deathWindow.text:SetPoint("CENTER", 0, -88)
 challengeModes.deathWindow.text:SetFont("Fonts/FRIZQT__.TTF", 16)
 
 challengeModes.deathWindow.button = CreateFrame("Button", nil, challengeModes.deathWindow, "UIPanelButtonTemplate")
-challengeModes.deathWindow.button:SetSize(120, 40)
+challengeModes.deathWindow.button:SetSize(140, 40)
 challengeModes.deathWindow.button:SetPoint("BOTTOM", 0, 24)
 challengeModes.deathWindow.button:EnableMouse(true)
 challengeModes.deathWindow.buttonText = challengeModes.deathWindow.button:CreateFontString()
 challengeModes.deathWindow.buttonText:SetFont("Fonts/MORPHEUS.TTF", 18, "OUTLINE")
 challengeModes.deathWindow.buttonText:SetShadowOffset(1, -1)
 challengeModes.deathWindow.button:SetFontString(challengeModes.deathWindow.buttonText)
-challengeModes.deathWindow.button:SetText("Logout")
+challengeModes.deathWindow.button:SetText(L("Death_Logout"))
 challengeModes.deathWindow.button:SetScript("OnClick", function()
 	RepopMe()
+	challengeModes.deathWindow:Hide()
 end)
 
 
@@ -527,7 +758,7 @@ CreateTexture(202 * scaleX, 85 * scaleY, neutralAtlas.TitleRight, "ARTWORK", "TO
 challengeModes.hofWindow.titleText = challengeModes.hofWindow:CreateFontString()
 challengeModes.hofWindow.titleText:SetPoint("TOP", 0, -60)
 challengeModes.hofWindow.titleText:SetFont("Fonts/FRIZQT__.TTF", 16, "OUTLINE")
-challengeModes.hofWindow.titleText:SetText("In remembrance of the bravest adventurers")
+challengeModes.hofWindow.titleText:SetText(L("HoF_Title"))
 
 -- Scroll
 CreateTexture(515 * scaleX, 438 * scaleY, neutralAtlas.WideScroll, "ARTWORK", "CENTER", 0, -38, "Interface/ChallengeModes/UIFrameNeutral", challengeModes.hofWindow)
@@ -559,11 +790,11 @@ challengeModes.hofWindow.cbHardcore = CreateCheckbox("ChallengeModesHoFCbHardcor
 challengeModes.hofWindow.cbIronman = CreateCheckbox("ChallengeModesHoFCbIronman", challengeModes.hofWindow, "TOP", -32, -140, "Ironman")
 challengeModes.hofWindow.cbBloodthirsty = CreateCheckbox("ChallengeModesHoFCbBloodthirsty", challengeModes.hofWindow, "TOP", 75, -140, "Bloodthirsty")
 
-challengeModes.hofWindow.cbCompleted = CreateCheckbox("ChallengeModesHoFCbCompleted", challengeModes.hofWindow, "TOP", -145, -160, "Completed", true, "Interface/ChallengeModes/HoFCompleted")
-challengeModes.hofWindow.cbFailed = CreateCheckbox("ChallengeModesHoFCbFailed", challengeModes.hofWindow, "TOP", -11, -160, "Failed", true, "Interface/ChallengeModes/HoFDead")
-challengeModes.hofWindow.cbActive = CreateCheckbox("ChallengeModesHoFCbActive", challengeModes.hofWindow, "TOP", 94, -160, "Active", true, "Interface/ChallengeModes/HoFActive")
+challengeModes.hofWindow.cbCompleted = CreateCheckbox("ChallengeModesHoFCbCompleted", challengeModes.hofWindow, "TOP", -145, -160, L("HoF_Completed"), true, "Interface/ChallengeModes/HoFCompleted")
+challengeModes.hofWindow.cbFailed = CreateCheckbox("ChallengeModesHoFCbFailed", challengeModes.hofWindow, "TOP", -11, -160, L("HoF_Dead"), true, "Interface/ChallengeModes/HoFDead")
+challengeModes.hofWindow.cbActive = CreateCheckbox("ChallengeModesHoFCbActive", challengeModes.hofWindow, "TOP", 94, -160, L("HoF_Active"), true, "Interface/ChallengeModes/HoFActive")
 
-challengeModes.hofWindow.cbMyChars = CreateCheckbox("ChallengeModesHoFCbMyChars", challengeModes.hofWindow, "TOP", -56, -180, "My Characters Only")
+challengeModes.hofWindow.cbMyChars = CreateCheckbox("ChallengeModesHoFCbMyChars", challengeModes.hofWindow, "TOP", -56, -180, L("HoF_MyCharsOnly"))
 
 -- Scrollframe
 challengeModes.hofWindow.scrollParent = CreateFrame("Frame", nil, challengeModes.hofWindow)
@@ -586,7 +817,7 @@ challengeModes.hofWindow.scrollColumn1:SetPoint("TOPLEFT", columnsX, -4)
 challengeModes.hofWindow.scrollColumn1:SetWidth(80)
 challengeModes.hofWindow.scrollColumn1:SetJustifyH("CENTER")
 challengeModes.hofWindow.scrollColumn1:SetFont("Fonts/FRIZQT__.TTF", 13)
-challengeModes.hofWindow.scrollColumn1:SetText("Name")
+challengeModes.hofWindow.scrollColumn1:SetText(L("HoF_Name"))
 columnsX = columnsX + challengeModes.hofWindow.scrollColumn1:GetWidth()
 
 challengeModes.hofWindow.scrollColumn2 = challengeModes.hofWindow.scrollParent:CreateFontString()
@@ -594,7 +825,7 @@ challengeModes.hofWindow.scrollColumn2:SetPoint("TOPLEFT", columnsX, -4)
 challengeModes.hofWindow.scrollColumn2:SetWidth(40)
 challengeModes.hofWindow.scrollColumn2:SetJustifyH("CENTER")
 challengeModes.hofWindow.scrollColumn2:SetFont("Fonts/FRIZQT__.TTF", 13)
-challengeModes.hofWindow.scrollColumn2:SetText("Level")
+challengeModes.hofWindow.scrollColumn2:SetText(L("HoF_Level"))
 columnsX = columnsX + challengeModes.hofWindow.scrollColumn2:GetWidth()
 
 challengeModes.hofWindow.scrollColumn3 = challengeModes.hofWindow.scrollParent:CreateFontString()
@@ -602,7 +833,7 @@ challengeModes.hofWindow.scrollColumn3:SetPoint("TOPLEFT", columnsX, -4)
 challengeModes.hofWindow.scrollColumn3:SetWidth(70)
 challengeModes.hofWindow.scrollColumn3:SetJustifyH("CENTER")
 challengeModes.hofWindow.scrollColumn3:SetFont("Fonts/FRIZQT__.TTF", 13)
-challengeModes.hofWindow.scrollColumn3:SetText("Ranking")
+challengeModes.hofWindow.scrollColumn3:SetText(L("HoF_Rank"))
 columnsX = columnsX + challengeModes.hofWindow.scrollColumn2:GetWidth()
 
 challengeModes.hofWindow.scroll = CreateFrame("ScrollFrame", "ChallengeModesHoFScrollFrame", challengeModes.hofWindow.scrollParent, "UIPanelScrollFrameTemplate")
@@ -767,10 +998,10 @@ CreateTexture(207 * scaleX, 207 * scaleY, { 0.0, 0.80859375, 0.0, 0.80859375 }, 
 challengeModes.completedWindow.title = challengeModes.completedWindow:CreateFontString()
 challengeModes.completedWindow.title:SetPoint("TOP", 0, -32)
 challengeModes.completedWindow.title:SetFont("Fonts/MORPHEUS.TTF", 22)
-challengeModes.completedWindow.title:SetText("CONGRATULATIONS!")
+challengeModes.completedWindow.title:SetText(L("Completed_Title"))
 
 challengeModes.completedWindow.text = challengeModes.completedWindow:CreateFontString()
-challengeModes.completedWindow.text:SetPoint("CENTER", challengeModes.completedWindow, "BOTTOM", 0, 98)
+challengeModes.completedWindow.text:SetPoint("CENTER", challengeModes.completedWindow, "BOTTOM", 0, 120)
 challengeModes.completedWindow.text:SetFont("Fonts/FRIZQT__.TTF", 16)
 
 challengeModes.completedWindow.closeButton = CreateFrame("Button", nil, challengeModes.completedWindow, "UIPanelCloseButton")
@@ -828,23 +1059,7 @@ function Handlers.OpenBannerUI(player, addonVersion, eligible)
 
 	for i, btn in pairs(scrollButtons) do
 		if eligible[i] ~= true then
-			local errTxt = ""
-			if eligible[i] == "CHALLENGEACTIVE" then
-				errTxt = "You are already enlisted for this challenge."
-			elseif eligible[i] == "EXP" then
-				errTxt = "Only available to level 1 characters with no experience points.\nCreate a fresh character to start the challenge."
-			elseif eligible[i] == "ITEMS" then
-				errTxt = "You possess items that were not included in your starting equipment.\nGet rid of them or create a fresh character to start the challenge."
-			elseif eligible[i] == "MONEY" then
-				errTxt = "You have money in your inventory.\nGet rid of it or create a fresh character to start the challenge."
-			elseif eligible[i] == "MAIL" then
-				errTxt = "You have pending mails.\nCreate a fresh character to start the challenge."
-			elseif eligible[i] == "DEATHS" then
-				errTxt = "This character has died before...\nCreate a fresh character to start the challenge."
-			elseif eligible[i] == "RANGE" then
-				errTxt = "You are too far away."
-			end
-
+			local errTxt = L("Err_" .. eligible[i])
 			btn:Disable()
 			btn:SetMotionScriptsWhileDisabled(true)
 
@@ -876,10 +1091,10 @@ function Handlers.Enlisted(player, challenge)
 	challengeModes.enlistSplashFrame:SetAlpha(0)
 
 	local text = challengeModes.enlistSplashFrame:CreateFontString()
-	text:SetSize(350 * scaleX, 140 * scaleY)
+	text:SetSize(380 * scaleX, 140 * scaleY)
 	text:SetPoint("CENTER", 0, 0)
 	text:SetFont("Fonts/FRIZQT__.TTF", 16)
-	text:SetText("Enlisted for " .. challenge .. " Challenge!")
+	text:SetText(L("Splash_Text", L("Main_" .. challenge)))
 	text:SetShadowOffset(1, -1)
 
 	CreateTexture(467 * scaleX, 141 * scaleY, atlas.EnlistSplash, "ARTWORK", "CENTER", 0, 0, "Interface/ChallengeModes/ScenarioHordeAlliance", challengeModes.enlistSplashFrame)
@@ -920,12 +1135,13 @@ function Handlers.Enlisted(player, challenge)
 	end)
 end
 
-function Handlers.OpenDeathUI(player, challenge, playedTime, rank)
+function Handlers.OpenDeathUI(player, challenges, playedTime, rank)
 	PlaySoundFile("Sound/Interface/PVPWARNING.wav")
 	local timer = 1.65
+	local challengesStr = FormatChallengesArray(challenges, 26)
 	challengeModes.deathWindow:SetAlpha(0)
 	challengeModes.deathWindow:Show()
-	challengeModes.deathWindow.text:SetText(UnitName("player") .. "'s journey ends here\nDied at level " .. UnitLevel("player") .. "\nPlayed for " .. playedTime .. "\n" .. challenge .. " rank: #" .. rank)
+	challengeModes.deathWindow.text:SetText(L("Death_Text", UnitName("player"), UnitLevel("player"), playedTime, challengesStr, rank))
 	challengeModes.deathWindow:SetScript("OnUpdate", function(self, dt)
 		if timer > 0 then
 			timer = timer - dt
@@ -1014,11 +1230,9 @@ function Handlers.CloseHallOfFameUI()
 	challengeModes.hofWindow:Hide()
 end
 
-function Handlers.OpenCompletedUI(player, challenge, playedTime, rank)
+function Handlers.OpenCompletedUI(player, challenges, playedTime, rank)
 	PlaySoundFile("Interface/ChallengeModes/1068315.ogg")
-	if string.len(challenge) > 23 then
-		challenge = challenge .. "\n"
-	end
-	challengeModes.completedWindow.text:SetText(UnitName("player") .. " faced many challenges,\nbut overcame them through\nsheer will and determination\n\nPlayed for " .. playedTime .. "\n\n" .. challenge .. " rank: #" .. rank)
+	local challengesStr = FormatChallengesArray(challenges, 18)
+	challengeModes.completedWindow.text:SetText(L("Completed_Text", UnitName("player"), playedTime, challengesStr, rank))
 	challengeModes.completedWindow:Show()
 end

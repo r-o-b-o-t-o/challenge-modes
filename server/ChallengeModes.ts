@@ -10,7 +10,7 @@ import { allChallengeModes, EChallengeMode } from "./EChallengeMode";
 const AIO = require("AIO") as Aio;
 
 class ChallengeModes {
-	private readonly addonVersion = "1.0.2";
+	private readonly addonVersion = "1.0.3";
 
 	// Constants
 	private readonly ACHIEVEMENT_CRITERIA_DEATHS = 111;
@@ -68,7 +68,7 @@ class ChallengeModes {
 	private checkEligible(player: Player) {
 		// Check level and xp
 		if (player.GetLevel() > 1 || player.GetXP() > 0) {
-			return "EXP";
+			return "Exp";
 		}
 
 		// Check for items
@@ -92,34 +92,34 @@ class ChallengeModes {
 		};
 		if (!checkItems(255, 0, 117)) {
 			// Check equipment, bag slots, items in backpack, bank slots, keyring
-			return "ITEMS";
+			return "Items";
 		}
 		for (let bag = 19; bag <= 22; ++bag) {
 			// Check for items in equipped bags
 			if (!checkItems(bag, 0, 35)) {
-				return "ITEMS";
+				return "Items";
 			}
 		}
 
 		// Check for money
 		if (player.GetCoinage() > 0) {
-			return "MONEY";
+			return "Money";
 		}
 
 		// Check for previous deaths from the achievements' stats
 		const deaths = player.GetAchievementCriteriaProgress(this.ACHIEVEMENT_CRITERIA_DEATHS);
 		if (deaths !== undefined && deaths > 0) {
-			return "DEATHS";
+			return "Deaths";
 		}
 
 		// Check for pending mails
 		if (player.GetMailCount() > 0) {
-			return "MAIL";
+			return "Mail";
 		}
 
 		// Make sure the player is still in range from the banner
 		if (!this.bannerGobj.isPlayerInRange(player)) {
-			return "RANGE";
+			return "Range";
 		}
 
 		return true;
@@ -192,7 +192,7 @@ class ChallengeModes {
 		this.bannerGobj.use(gobj, player);
 
 		const eligible = this.checkEligible(player);
-		const eligibilityArray = allChallengeModes().map(challenge => char?.hasChallenge(challenge) ? "CHALLENGEACTIVE" : eligible);
+		const eligibilityArray = allChallengeModes().map(challenge => char?.hasChallenge(challenge) ? "ChallengeActive" : eligible);
 		AIO.Handle(player, Config.instance.channelName, "OpenBannerUI", this.addonVersion, eligibilityArray);
 	}
 
@@ -441,7 +441,7 @@ class ChallengeModes {
 		char.getRank((rank) => {
 			const player = GetPlayerByGUID(char.guid);
 			if (player) {
-				AIO.Handle(player, Config.instance.channelName, "OpenCompletedUI", char.formatChallenges(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), rank);
+				AIO.Handle(player, Config.instance.channelName, "OpenCompletedUI", char.getChallengesArray(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), rank);
 			}
 			if (Config.instance.announceCompletions) {
 				SendWorldMessage(`${this.getColoredName(char)} completed the ${char.formatChallenges()} Challenge and was ranked #${rank}!`);
@@ -566,7 +566,9 @@ class ChallengeModes {
 
 		char.getRank((rank) => {
 			const player = GetPlayerByGUID(char.guid);
-			AIO.Handle(player, Config.instance.channelName, "OpenDeathUI", char.formatChallenges(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), rank);
+			if (player) {
+				AIO.Handle(player, Config.instance.channelName, "OpenDeathUI", char.getChallengesArray(), Utils.formatPlayedTime(player.GetTotalPlayedTime()), rank);
+			}
 		});
 	}
 
