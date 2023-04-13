@@ -10,7 +10,7 @@ import { allChallengeModes, EChallengeMode } from "./EChallengeMode";
 const AIO = require("AIO") as Aio;
 
 class ChallengeModes {
-	private readonly addonVersion = "1.0.1";
+	private readonly addonVersion = "1.0.2";
 
 	// Constants
 	private readonly ACHIEVEMENT_CRITERIA_DEATHS = 111;
