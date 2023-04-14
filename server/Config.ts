@@ -26,6 +26,7 @@ export default class Config {
 	};
 	public broadcasts: string[];
 	public broadcastFrequency: number;
+	public guildName: string;
 
 	public static read(): void {
 		const [file, err, errCode] = io.open(this.getDirectory() + "/../config.json", "r");

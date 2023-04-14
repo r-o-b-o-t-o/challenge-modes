@@ -705,6 +705,14 @@ class ChallengeModes {
 				}
 				return false;
 			}
+			if (player && ["guild"].includes(cmd)) {
+				if (this.isPlayerEnlisted(player)) {
+					RunCommand(`guild invite ${player.GetName()} "${Config.instance.guildName}"`);
+				} else {
+					chatHandler.SendSysMessage(`You need to be enlisted for Challenge Modes to join the guild.`);
+				}
+				return false;
+			}
 
 			return true;
 		}

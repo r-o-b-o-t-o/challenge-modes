@@ -20,6 +20,7 @@
 	},
 	"broadcasts": [],
 	"broadcastFrequency": 3600,
+	"guildName": "",
 	"rewards": {
 		"1": {
 			"_": "Warrior",
