@@ -713,20 +713,26 @@ class ChallengeModes {
 				return false;
 			}
 			if (player && ["guild"].includes(cmd)) {
-				if (this.isPlayerEnlisted(player)) {
-					RunCommand(`guild invite ${player.GetName()} "${Config.instance.guildName}"`);
+				if (!this.isPlayerEnlisted(player)) {
+					chatHandler.SendSysMessage("You need to be enlisted for Challenge Modes to join the guild.");
+					return false;
+				}
 
-					if (Config.instance.guildRanks && Config.instance.guildRanks[char.challenge.toString()] !== undefined) {
-						CreateLuaEvent(() => {
-							const player = GetPlayerByGUID(char.guid);
-							if (player) {
-								const guild = player.GetGuild();
-								guild?.SetMemberRank(player, Config.instance.guildRanks[char.challenge.toString()]);
-							}
-						}, 1000);
-					}
-				} else {
-					chatHandler.SendSysMessage(`You need to be enlisted for Challenge Modes to join the guild.`);
+				if (player.IsInGuild()) {
+					chatHandler.SendSysMessage("You are already in a guild.");
+					return false;
+				}
+
+				RunCommand(`guild invite ${player.GetName()} "${Config.instance.guildName}"`);
+
+				if (Config.instance.guildRanks && Config.instance.guildRanks[char.challenge.toString()] !== undefined) {
+					CreateLuaEvent(() => {
+						const player = GetPlayerByGUID(char.guid);
+						if (player) {
+							const guild = player.GetGuild();
+							guild?.SetMemberRank(player, Config.instance.guildRanks[char.challenge.toString()]);
+						}
+					}, 1000);
 				}
 				return false;
 			}
