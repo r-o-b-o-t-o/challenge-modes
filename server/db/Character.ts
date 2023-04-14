@@ -106,11 +106,13 @@ export default class Character {
 
 	public static getAllActive(): Character[] {
 		const res = CharDBQuery(`
-			SELECT guid, account, name, race, class, gender, level, challenge, completed, dead, died_on, char_deleted, played_time
-			FROM ${Character.table()}
+			SELECT ch.guid, ch.account, ch.name, ch.race, ch.class, ch.gender, ch.level, ch.challenge, ch.completed, ch.dead, ch.died_on, ch.char_deleted, ch.played_time
+			FROM ${Character.table()} ch
+			INNER JOIN acore_characters.characters ON characters.guid = ch.guid
 			WHERE
 				completed = 0 AND
-				(dead = 0 OR char_deleted = 0)
+				(dead = 0 OR char_deleted = 0) AND
+				characters.deleteInfos_Account IS NULL;
 		`);
 		return Database.getRowsFromQuery(res).map(row => this.createFromRow(row));
 	}
