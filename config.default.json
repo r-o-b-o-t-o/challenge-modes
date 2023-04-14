@@ -21,6 +21,7 @@
 	"broadcasts": [],
 	"broadcastFrequency": 3600,
 	"guildName": "",
+	"guildRanks": {},
 	"rewards": {
 		"1": {
 			"_": "Warrior",
