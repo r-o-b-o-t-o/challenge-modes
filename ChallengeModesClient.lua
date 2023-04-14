@@ -123,7 +123,7 @@ locales["enUS"] = {
 	Confirm_XP = "Can only gain experience from defeating creatures",
 	Confirm_Party = "Can only party up with players with the same challenges",
 	Confirm_Trade = "Can only trade with players with the same challenges",
-	Confirm_Mail = "Cannot receive items or money by mail",
+	Confirm_Mail = "Can only receive items or money by mail from players\nwith the same challenges",
 	Confirm_AH = "Cannot use Auction Houses",
 	Confirm_GB = "Cannot use Guild Banks",
 	Confirm_Disable = "Cannot be turned off",
@@ -171,7 +171,7 @@ locales["frFR"] = {
 	Confirm_XP = "Vous pourrez seulement gagner de l'expérience en tuant des créatures",
 	Confirm_Party = "Vous pourrez seulement être en groupe avec les joueurs qui ont le même défi",
 	Confirm_Trade = "Vous pourrez seulement échanger avec les joueurs qui ont le même défi",
-	Confirm_Mail = "Vous ne pourrez pas recevoir d'objets ni d'argent par courrier",
+	Confirm_Mail = "Seuls les joueurs qui ont le même défi que vous pourront\nvous envoyer des objets ou de l'argent par courrier",
 	Confirm_AH = "Vous ne pourrez pas utiliser l'hôtel des ventes",
 	Confirm_GB = "Vous ne pourrez pas utiliser les banques de guildes",
 	Confirm_Disable = "Ne peut pas être désactivé",
@@ -218,7 +218,7 @@ locales["deDE"] = {
 	Confirm_XP = "Man kann ausschließlich durch das Töten von Gegnern Erfahrung erhalten.",
 	Confirm_Party = "Man kann nur mit Spielern in eine Gruppe, die genau die gleichen Herausforderungen haben",
 	Confirm_Trade = "Man kann nur mit Spielern handeln, die genau die gleichen Herausforderungen haben",
-	Confirm_Mail = "Man kann keine Gegenstände oder Gold per Mail erhalten",
+	Confirm_Mail = "Man kann nur Gegenstände oder Gold von Spielern per Mail erhalten,\ndie genau die gleichen Herausforderungen haben",
 	Confirm_AH = "Man kann das Auktionshaus nicht nutzen",
 	Confirm_GB = "Man kann die Gildenbank nicht nutzen",
 	Confirm_Disable = "Kann nicht deaktiviert werden",
@@ -554,16 +554,27 @@ local confirmLineFrames = {
 	Ironman = CreateConfirmLineFrame(),
 	Bloodthirsty = CreateConfirmLineFrame(),
 }
-local function CreateConfirmXLine(text, parent)
-	CreateTexture(nil, nil, { 0, 1, 0, 1 }, "ARTWORK", "LEFT", 30, confirmLinesY, "Interface/GLUES/LOGIN/Glues-CheckBox-Check", parent)
+local function CreateConfirmXLine(text, parent, linebreak)
+	local y = confirmLinesY
+	if linebreak == true then
+		y = y - 6
+	end
+
+	CreateTexture(nil, nil, { 0, 1, 0, 1 }, "ARTWORK", "LEFT", 30, y, "Interface/GLUES/LOGIN/Glues-CheckBox-Check", parent)
 
 	local txt = parent:CreateFontString()
-	txt:SetPoint("LEFT", 54, confirmLinesY + 1)
+	txt:SetPoint("LEFT", 54, y + 1)
 	txt:SetFont("Fonts/FRIZQT__.TTF", 13)
 	txt:SetText("|CFFCD0000" .. text .. "|r")
+	txt:SetJustifyH("LEFT")
 	txt:SetShadowOffset(1, -1)
 
-	confirmLinesY = confirmLinesY - confirmLinesGap
+	local gap = confirmLinesGap
+	if linebreak == true then
+		gap = gap + 14
+	end
+
+	confirmLinesY = confirmLinesY - gap
 end
 
 local function CreateConfirmOKLine(text, parent)
@@ -627,7 +638,7 @@ for _, btn in pairs(scrollButtons) do
 
 	-- Add the detail lines
 	local confirmLineFrame = confirmLineFrames[challengeName]
-	confirmLinesY = 110
+	confirmLinesY = 120
 	confirmLinesGap = 20
 	if challengeName == "Hardcore" then
 		CreateConfirmXLine(L("Confirm_Permadeath"), confirmLineFrame)
@@ -640,7 +651,7 @@ for _, btn in pairs(scrollButtons) do
 	end
 	CreateConfirmXLine(L("Confirm_Party"), confirmLineFrame)
 	CreateConfirmXLine(L("Confirm_Trade"), confirmLineFrame)
-	CreateConfirmXLine(L("Confirm_Mail"), confirmLineFrame)
+	CreateConfirmXLine(L("Confirm_Mail"), confirmLineFrame, true)
 	CreateConfirmXLine(L("Confirm_AH"), confirmLineFrame)
 	CreateConfirmXLine(L("Confirm_GB"), confirmLineFrame)
 	CreateConfirmXLine(L("Confirm_Disable"), confirmLineFrame)

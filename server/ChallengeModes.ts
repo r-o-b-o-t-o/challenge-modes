@@ -1,6 +1,7 @@
 import Utils from "./Utils";
 import Config from "./Config";
 import PlayerMap from "./PlayerMap";
+import Database from "./db/Database";
 import Character from "./db/Character";
 import HallOfFame from "./db/HallOfFame";
 import { timestampToDate } from "./date";
@@ -68,10 +69,10 @@ class ChallengeModes {
 		_G.ChallengeModes = this;
 	}
 
-	private checkEligible(player: Player) {
+	private checkEligible(player: Player, cb: (eligible: true | "Exp" | "Items" | "Money" | "Deaths" | "Mail" | "Range") => void): void {
 		// Check level and xp
 		if (player.GetLevel() > 1 || player.GetXP() > 0) {
-			return "Exp";
+			return cb("Exp");
 		}
 
 		// Check for items
@@ -95,37 +96,51 @@ class ChallengeModes {
 		};
 		if (!checkItems(255, 0, 117)) {
 			// Check equipment, bag slots, items in backpack, bank slots, keyring
-			return "Items";
+			return cb("Items");
 		}
 		for (let bag = 19; bag <= 22; ++bag) {
 			// Check for items in equipped bags
 			if (!checkItems(bag, 0, 35)) {
-				return "Items";
+				return cb("Items");
 			}
 		}
 
 		// Check for money
 		if (player.GetCoinage() > 0) {
-			return "Money";
+			return cb("Money");
 		}
 
 		// Check for previous deaths from the achievements' stats
 		const deaths = player.GetAchievementCriteriaProgress(this.ACHIEVEMENT_CRITERIA_DEATHS);
 		if (deaths !== undefined && deaths > 0) {
-			return "Deaths";
+			return cb("Deaths");
 		}
 
 		// Check for pending mails
 		if (player.GetMailCount() > 0) {
-			return "Mail";
+			return cb("Mail");
 		}
 
-		// Make sure the player is still in range from the banner
-		if (!this.bannerGobj.isPlayerInRange(player)) {
-			return "Range";
-		}
+		const guid = player.GetGUID();
+		// Prevent getting money from COD mails
+		CharDBQueryAsync(`SELECT COUNT(id) AS c FROM mail WHERE sender = ${player.GetGUID()}`, (res) => {
+			const player = GetPlayerByGUID(guid);
+			if (!player) {
+				return;
+			}
 
-		return true;
+			const rows = Database.getRowsFromQuery(res);
+			if (rows.length > 0 && rows[0].c > 0) {
+				return cb("Mail");
+			}
+
+			// Make sure the player is still in range from the banner
+			if (!this.bannerGobj.isPlayerInRange(player)) {
+				return cb("Range");
+			}
+
+			cb(true);
+		});
 	}
 
 	private loadCharacters() {
@@ -194,9 +209,14 @@ class ChallengeModes {
 
 		this.bannerGobj.use(gobj, player);
 
-		const eligible = this.checkEligible(player);
-		const eligibilityArray = allChallengeModes().map(challenge => char?.hasChallenge(challenge) ? "ChallengeActive" : eligible);
-		AIO.Handle(player, Config.instance.channelName, "OpenBannerUI", this.addonVersion, eligibilityArray);
+		const guid = player.GetGUID();
+		this.checkEligible(player, (eligible) => {
+			const player = GetPlayerByGUID(guid);
+			if (player) {
+				const eligibilityArray = allChallengeModes().map(challenge => char?.hasChallenge(challenge) ? "ChallengeActive" : eligible);
+				AIO.Handle(player, Config.instance.channelName, "OpenBannerUI", this.addonVersion, eligibilityArray);
+			}
+		});
 	}
 
 	private onShrineUse(event: GameObjectEvents, gobj: GameObject, player: Player) {
@@ -497,12 +517,10 @@ class ChallengeModes {
 	}
 
 	private onPlayerSendMail(event: PlayerEvents, player: Player, receiverGuid: number, mailbox: number, subject: string, body: string, money: number, cod: number, item: Item): boolean {
-		if (this.characters.has(receiverGuid) && (money > 0 || item !== null)) {
-			// Prevent from sending the mail if the target character is running a challenge and the mail contains money or items
-			return false;
-		}
-		if (this.isPlayerEnlisted(player) && cod > 0) {
-			// Prevent the player from getting money from CODs if they're running a challenge
+		const receiver = this.characters.get(receiverGuid);
+		const sender = this.getCharacter(player);
+		if (receiver && receiver.challenge !== sender?.challenge && (money > 0 || item !== null)) {
+			// Prevent from sending the mail if the target character is running a different challenge and the mail contains money or items
 			return false;
 		}
 
@@ -760,29 +778,37 @@ class ChallengeModes {
 			return;
 		}
 
-		if (this.checkEligible(player) !== true) {
-			player.SendNotification(`Could not enable the ${EChallengeMode[challenge]} challenge.`);
-			return;
-		}
+		const guid = player.GetGUID();
+		this.checkEligible(player, (eligible) => {
+			const player = GetPlayerByGUID(guid);
+			if (!player) {
+				return;
+			}
 
-		if (!char) {
-			char = new Character(player.GetGUID(), player.GetAccountId(), player.GetName(), player.GetRace(), player.GetClass(), player.GetGender(), player.GetLevel(), challenge);
-			this.characters.set(player, char);
-		} else {
-			char.addChallenge(challenge);
-		}
-		char.save();
-		if (Config.instance.logging.enlisted) {
-			this.log(`Enlisted for ${Character.formatChallenges(challenge)}`, player);
-		}
+			if (eligible !== true) {
+				player.SendNotification(`Could not enable the ${EChallengeMode[challenge]} challenge.`);
+				return;
+			}
 
-		AIO.Handle(player, Config.instance.channelName, "Enlisted", EChallengeMode[challenge]);
+			if (!char) {
+				char = new Character(player.GetGUID(), player.GetAccountId(), player.GetName(), player.GetRace(), player.GetClass(), player.GetGender(), player.GetLevel(), challenge);
+				this.characters.set(player, char);
+			} else {
+				char.addChallenge(challenge);
+			}
+			char.save();
+			if (Config.instance.logging.enlisted) {
+				this.log(`Enlisted for ${Character.formatChallenges(challenge)}`, player);
+			}
 
-		if (player.IsInGroup()) {
-			// Remove from group
-			const group = player.GetGroup();
-			group.RemoveMember(player.GetGUID(), RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
-		}
+			AIO.Handle(player, Config.instance.channelName, "Enlisted", EChallengeMode[challenge]);
+
+			if (player.IsInGroup()) {
+				// Remove from group
+				const group = player.GetGroup();
+				group.RemoveMember(player.GetGUID(), RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
+			}
+		});
 	}
 
 	private openBannerUI(player: Player) {
