@@ -38,6 +38,7 @@ class ChallengeModes {
 	private characters: PlayerMap<Character>;
 	private mobTaggingCounter: PlayerMap<{ value: number; taggers: string[]; cancelId?: number; }>;
 	private shrineBuff: number;
+	private broadcastIdx: number;
 
 	public constructor() {
 		AIO.AddHandlers(Config.instance.channelName, {
@@ -52,6 +53,8 @@ class ChallengeModes {
 
 		this.pickRandomShrineBuff();
 		CreateLuaEvent(() => this.pickRandomShrineBuff(), Config.instance.shrineBuffChangeTime * 1000, 0);
+		this.broadcastIdx = 0;
+		CreateLuaEvent(() => this.broadcast(), Config.instance.broadcastFrequency * 1000, 0);
 
 		this.hallOfFame = new HallOfFame();
 		this.bannerGobj = new ChallengeGameObject(15, "CloseBannerUI");
@@ -217,6 +220,26 @@ class ChallengeModes {
 
 	private pickRandomShrineBuff() {
 		this.shrineBuff = Config.instance.shrineBuffs[Math.floor(Math.random() * Config.instance.shrineBuffs.length)];
+	}
+
+	private broadcast() {
+		if (Config.instance.broadcasts.length === 0) {
+			return;
+		}
+
+		const str = Config.instance.broadcasts[this.broadcastIdx];
+		++this.broadcastIdx;
+		if (this.broadcastIdx >= Config.instance.broadcasts.length) {
+			this.broadcastIdx = 0;
+		}
+
+		for (const key of this.characters.keys()) {
+			const char = this.characters.get(key);
+			const player = GetPlayerByGUID(char.guid);
+			if (player !== null) {
+				player.SendChatMessageToPlayer(ChatMsg.CHAT_MSG_SYSTEM, Language.LANG_COMMON, str, player);
+			}
+		}
 	}
 
 	private onHallOfFameUse(event: GameObjectEvents, gobj: GameObject, player: Player) {

@@ -24,6 +24,8 @@ export default class Config {
 		rewards: boolean;
 		mobTagging: boolean | number;
 	};
+	public broadcasts: string[];
+	public broadcastFrequency: number;
 
 	public static read(): void {
 		const [file, err, errCode] = io.open(this.getDirectory() + "/../config.json", "r");

@@ -18,6 +18,8 @@
 		"rewards": true,
 		"mobTagging": 10
 	},
+	"broadcasts": [],
+	"broadcastFrequency": 3600,
 	"rewards": {
 		"1": {
 			"_": "Warrior",
