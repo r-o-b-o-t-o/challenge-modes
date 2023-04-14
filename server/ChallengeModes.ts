@@ -639,9 +639,7 @@ class ChallengeModes {
 				target = ownerAsPlayer;
 			}
 		}
-		const casterChar = this.getCharacter(player);
-		const targetChar = this.getCharacter(target);
-		if (target && this.isPlayerEnlisted(target) && targetChar.challenge !== casterChar?.challenge && target.GetTeam() === player.GetTeam() && !player.IsInSameRaidWith(target)) {
+		if (target && this.isPlayerEnlisted(target) && target.GetTeam() === player.GetTeam() && !player.IsInSameRaidWith(target)) {
 			// Prevent power-leveling enlisted players by buffing or healing
 			spell.Cancel();
 		}
