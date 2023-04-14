@@ -639,17 +639,14 @@ class ChallengeModes {
 	}
 
 	private onCommand(event: PlayerEvents, player: Player, command: string, chatHandler: ChatHandler) {
-		if (player && player.GetGMRank() < 2) {
-			return true;
-		}
-
-		const split = command.split(" ").filter(arg => arg.trim() !== "");
-		if (split.length > 1 && (split[0].toLowerCase() === "challenges" || split[0].toLowerCase() === "challenge" || split[0].toLowerCase() === "chall")) {
-			split.shift();
-			const cmd = split.shift().toLowerCase();
+		const isGm = chatHandler.IsConsole() || player.GetGMRank() >= 2;
+		const args = command.split(" ").filter(arg => arg.trim() !== "");
+		if (args.length > 1 && (args[0].toLowerCase() === "challenges" || args[0].toLowerCase() === "challenge" || args[0].toLowerCase() === "chall")) {
+			args.shift();
+			const cmd = args.shift().toLowerCase();
 			const char = this.getCharacter(player);
 
-			if (["complete", "completion", "completed"].includes(cmd)) {
+			if (isGm && ["complete", "completion", "completed"].includes(cmd)) {
 				char?.getRank((rank) => {
 					const player = GetPlayerByGUID(char.guid);
 					if (player) {
@@ -658,7 +655,7 @@ class ChallengeModes {
 				});
 				return false;
 			}
-			if (["die", "dead", "death"].includes(cmd)) {
+			if (isGm && ["die", "dead", "death"].includes(cmd)) {
 				char?.getRank((rank) => {
 					const player = GetPlayerByGUID(char.guid);
 					if (player) {
@@ -667,7 +664,7 @@ class ChallengeModes {
 				});
 				return false;
 			}
-			if (["online", "list", "count"].includes(cmd)) {
+			if (isGm && ["online", "list", "count"].includes(cmd)) {
 				const counts = {};
 				let total = 0;
 
@@ -690,6 +687,22 @@ class ChallengeModes {
 				}
 				str += "Online: " + total;
 				chatHandler.SendSysMessage(str);
+				return false;
+			}
+			if (["info", "inspect"].includes(cmd)) {
+				let target: Character;
+				if (args.length > 0) {
+					const name = args.shift().toLowerCase();
+					target = this.characters.keys().map(k => this.characters.get(k)).find(char => char.name.toLowerCase() === name);
+				} else {
+					target = this.getCharacter(chatHandler.GetSelectedPlayer());
+				}
+
+				if (target) {
+					chatHandler.SendSysMessage(`${target.name} is enlisted for ${target.formatChallenges()}.`);
+				} else {
+					chatHandler.SendSysMessage(`Not enlisted for any Challenge Mode.`);
+				}
 				return false;
 			}
 
