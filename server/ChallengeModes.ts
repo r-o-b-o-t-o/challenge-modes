@@ -641,7 +641,7 @@ class ChallengeModes {
 	private onCommand(event: PlayerEvents, player: Player, command: string, chatHandler: ChatHandler) {
 		const isGm = chatHandler.IsConsole() || player.GetGMRank() >= 2;
 		const args = command.split(" ").filter(arg => arg.trim() !== "");
-		if (args.length > 1 && (args[0].toLowerCase() === "challenges" || args[0].toLowerCase() === "challenge" || args[0].toLowerCase() === "chall")) {
+		if (args.length > 1 && ["challenges", "challenge", "chall", "chal"].includes(args[0].toLowerCase())) {
 			args.shift();
 			const cmd = args.shift().toLowerCase();
 			const char = this.getCharacter(player);
