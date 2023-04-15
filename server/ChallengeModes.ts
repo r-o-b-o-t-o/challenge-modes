@@ -325,6 +325,12 @@ class ChallengeModes {
 		if (Config.instance.logging.deleting) {
 			this.log("Deleting character", player);
 		}
+
+		if (player.IsInGuild()) {
+			const guild = player.GetGuild();
+			guild.DeleteMember(player, false);
+		}
+
 		RunCommand(`ban character ${player.GetName()} -1 Challenge Mode Death`);
 		CreateLuaEvent(() => {
 			CharDBExecute(`
