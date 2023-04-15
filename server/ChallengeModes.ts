@@ -24,6 +24,7 @@ class ChallengeModes {
 	private readonly CMSG_GUILD_BANK_DEPOSIT_MONEY = 0x3EC;
 	private readonly CMSG_GUILD_BANK_WITHDRAW_MONEY = 0x3ED;
 	private readonly CMSG_PET_LEARN_TALENT = 0x47A;
+	private readonly CMSG_ACCEPT_TRADE = 0x11A;
 
 	// Ids
 	private readonly allianceGobjEntry = 2000000;
@@ -187,6 +188,7 @@ class ChallengeModes {
 			RegisterPacketEvent(opcode, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.cancelPacket(...args));
 		}
 		RegisterPacketEvent(this.CMSG_PET_LEARN_TALENT, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onPetLearnTalent(...args));
+		RegisterPacketEvent(this.CMSG_ACCEPT_TRADE, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onAcceptTrade(...args));
 	}
 
 	private onAllianceBannerUse(event: GameObjectEvents, gobj: GameObject, player: Player) {
@@ -448,6 +450,14 @@ class ChallengeModes {
 		const character = this.getCharacter(player);
 		if (character?.isIronman()) {
 			// Prevent learning pet talents on Ironman characters
+			return false;
+		}
+		return true;
+	}
+
+	private onAcceptTrade(event: PacketEvents, packet: WorldPacket, player: Player) {
+		if (this.isPlayerEnlisted(player)) {
+			// Prevent finishing a trade when enlisted
 			return false;
 		}
 		return true;
