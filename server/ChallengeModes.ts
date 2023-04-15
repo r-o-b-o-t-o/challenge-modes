@@ -418,15 +418,15 @@ class ChallengeModes {
 	private onPlayerTrade(event: PlayerEvents, player: Player, target: Player): boolean {
 		const a = this.getCharacter(player);
 		const b = this.getCharacter(target);
-		const res = a?.challenge === b?.challenge;
-		if (!res) {
+		const canTrade = a?.challenge === b?.challenge;
+		if (!canTrade) {
 			if (a) {
 				player.SendNotification(`You can only trade with other ${a.formatChallenges()} players.`);
 			} else {
 				player.SendNotification(`You cannot trade with ${b.formatChallenges()} players.`);
 			}
 		}
-		return res;
+		return canTrade;
 	}
 
 	private onPlayerCanUseItem(event: PlayerEvents, player: Player, itemEntry: number): InventoryResult {
@@ -461,7 +461,10 @@ class ChallengeModes {
 	private onAcceptTrade(event: PacketEvents, packet: WorldPacket, player: Player) {
 		if (this.isPlayerEnlisted(player)) {
 			// Prevent finishing a trade when enlisted
-			return false;
+			const a = this.getCharacter(player);
+			const b = this.getCharacter(player.GetTrader());
+			const canTrade = a?.challenge === b?.challenge;
+			return canTrade;
 		}
 		return true;
 	}
