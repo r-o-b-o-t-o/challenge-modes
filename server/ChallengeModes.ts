@@ -25,6 +25,9 @@ class ChallengeModes {
 	private readonly CMSG_GUILD_BANK_WITHDRAW_MONEY = 0x3ED;
 	private readonly CMSG_PET_LEARN_TALENT = 0x47A;
 	private readonly CMSG_ACCEPT_TRADE = 0x11A;
+	private readonly PLAYER_FIELD_VENDORBUYBACK_SLOT_1 = 472;
+	private readonly PLAYER_FIELD_BUYBACK_PRICE_1 = 1201;
+	private readonly PLAYER_FIELD_BUYBACK_TIMESTAMP_1 = 1213;
 
 	// Ids
 	private readonly allianceGobjEntry = 2000000;
@@ -816,6 +819,16 @@ class ChallengeModes {
 			char.save();
 			if (Config.instance.logging.enlisted) {
 				this.log(`Enlisted for ${Character.formatChallenges(challenge)}`, player);
+			}
+
+			// Clear buyback
+			const buybackSlotStart = 74;
+			const buybackSlotEnd = 86;
+			for (let slot = buybackSlotStart; slot < buybackSlotEnd; ++slot) {
+				const eslot = slot - buybackSlotStart;
+				player.SetUInt32Value(this.PLAYER_FIELD_VENDORBUYBACK_SLOT_1 + (eslot * 2), 0);
+				player.SetUInt32Value(this.PLAYER_FIELD_BUYBACK_PRICE_1 + eslot, 0);
+				player.SetUInt32Value(this.PLAYER_FIELD_BUYBACK_TIMESTAMP_1 + eslot, 0);
 			}
 
 			AIO.Handle(player, Config.instance.channelName, "Enlisted", EChallengeMode[challenge]);
