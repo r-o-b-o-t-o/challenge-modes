@@ -546,6 +546,10 @@ class ChallengeModes {
 			// Prevent from sending the mail if the target character is running a different challenge and the mail contains money or items
 			return false;
 		}
+		if (sender && cod > 0 && !receiver) {
+			// Prevent from getting money from non-challenge players with COD
+			return false;
+		}
 
 		return true;
 	}
