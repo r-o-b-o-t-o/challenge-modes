@@ -13,5 +13,9 @@ CREATE TABLE `challenge_modes_character` (
 	`char_deleted` TINYINT UNSIGNED NOT NULL DEFAULT 0,
 	`played_time` INT UNSIGNED DEFAULT NULL
 );
-
 ALTER TABLE `challenge_modes_character` ADD PRIMARY KEY (`guid`);
+
+CREATE TABLE `challenge_modes_guild_ban` (
+	`account` int UNSIGNED NOT NULL
+);
+ALTER TABLE `challenge_modes_guild_ban` ADD PRIMARY KEY (`account`);

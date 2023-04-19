@@ -1,8 +1,10 @@
 import Utils from "./Utils";
 import Areas from "./Areas";
 import Config from "./Config";
+import GuidSet from "./GuidSet";
 import PlayerMap from "./PlayerMap";
 import Database from "./db/Database";
+import GuildBan from "./db/GuildBan";
 import Character from "./db/Character";
 import HallOfFame from "./db/HallOfFame";
 import { timestampToDate } from "./date";
@@ -42,6 +44,7 @@ class ChallengeModes {
 	private readonly bannerGobj: ChallengeGameObject;
 	private readonly hallOfFameGobj: ChallengeGameObject;
 	private characters: PlayerMap<Character>;
+	private guildBans: GuidSet;
 	private mobTaggingCounter: PlayerMap<{ value: number; taggers: string[]; cancelId?: number; }>;
 	private shrineBuff: number;
 	private broadcastIdx: number;
@@ -150,9 +153,13 @@ class ChallengeModes {
 
 	private loadCharacters() {
 		this.characters = new PlayerMap<Character>();
+		this.guildBans = new GuidSet();
 
 		for (const char of Character.getAllActive()) {
 			this.characters.set(char.guid, char);
+		}
+		for (const ban of GuildBan.getAll()) {
+			this.guildBans.add(ban.account);
 		}
 	}
 
@@ -791,6 +798,32 @@ class ChallengeModes {
 				}
 				return false;
 			}
+			if (player && player.IsInGuild() && ["guild"].includes(cmd) && ["ban"].includes(args[0].toLowerCase())) {
+				const name = args[1];
+				if (name == null || name == "") {
+					chatHandler.SendSysMessage("Usage: .challenge guild ban Playername");
+					return false;
+				}
+
+				const guild = player.GetGuild();
+				if (guild.GetName() === Config.instance.guildName && [0, 1].includes(player.GetGuildRank())) {
+					const target = GetPlayerByName(name);
+					if (target) {
+						if (target.IsInGuild() && target.GetGuild().GetId() === guild.GetId()) {
+							const ban = new GuildBan(target.GetAccountId());
+							ban.save();
+							this.guildBans.add(ban.account);
+							guild.DeleteMember(target, false);
+							chatHandler.SendSysMessage(`${target.GetName()}'s account has been banned from the guild.`);
+						} else {
+							chatHandler.SendSysMessage(`${target.GetName()} is not in the guild.`);
+						}
+					} else {
+						chatHandler.SendSysMessage(`Player ${name} does not exist or is offline.`);
+					}
+					return false;
+				}
+			}
 			if (player && ["guild"].includes(cmd)) {
 				if (!this.isPlayerEnlisted(player)) {
 					chatHandler.SendSysMessage("You need to be enlisted for Challenge Modes to join the guild.");
@@ -799,6 +832,11 @@ class ChallengeModes {
 
 				if (player.IsInGuild()) {
 					chatHandler.SendSysMessage("You are already in a guild.");
+					return false;
+				}
+
+				if (this.guildBans.has(player.GetAccountId())) {
+					chatHandler.SendSysMessage("You are banned from this guild.");
 					return false;
 				}
 
