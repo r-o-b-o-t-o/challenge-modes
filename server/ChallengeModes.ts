@@ -784,7 +784,8 @@ class ChallengeModes {
 				}
 
 				if (target) {
-					chatHandler.SendSysMessage(`${this.getColoredName(target)} is enlisted for ${target.formatChallenges()}.`);
+					const name = chatHandler.IsConsole() ? target.name : this.getColoredName(target);
+					chatHandler.SendSysMessage(`${name} is enlisted for ${target.formatChallenges()}.`);
 				} else {
 					chatHandler.SendSysMessage(`Not enlisted for any Challenge Mode.`);
 				}
