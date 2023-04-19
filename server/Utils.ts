@@ -1,4 +1,5 @@
 import Config from "./Config";
+import { Date } from "./date";
 
 export default class Utils {
 	public static formatPlayedTime(seconds: number): string {
@@ -46,5 +47,11 @@ export default class Utils {
 			return this.testRegex(path, "^[a-zA-Z]:[\\/]");
 		}
 		return path.startsWith("/");
+	}
+
+	public static formatDate(date: Date, separator = "-"): string {
+		const month = (date.month + 1).toString().padStart(2, "0");
+		const day = date.mday.toString().padStart(2, "0");
+		return `${date.year}${separator}${month}${separator}${day}`;
 	}
 }

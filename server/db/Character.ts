@@ -128,7 +128,7 @@ export default class Character {
 		return challenges.join(" + ");
 	}
 
-	private static createFromRow(row: any): Character {
+	public static createFromRow(row: any): Character {
 		return new Character(row.guid, row.account, row.name, row.race, row.class, row.gender, row.level, row.challenge, row.completed === 1, row.dead === 1, row.died_on, row.char_deleted === 1, row.played_time);
 	}
 }

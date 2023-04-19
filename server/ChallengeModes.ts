@@ -741,6 +741,39 @@ class ChallengeModes {
 				chatHandler.SendSysMessage(str);
 				return false;
 			}
+			if (isGm && ["restore"].includes(cmd)) {
+				const nameOrGuid = args.shift();
+				if (!nameOrGuid) {
+					chatHandler.SendSysMessage(`Syntax: .challenge restore $nameOrGuid`);
+					return false;
+				}
+
+				const guid = parseInt(nameOrGuid);
+				const res = CharDBQuery(`SELECT * FROM ${Character.table()} WHERE name = \"${nameOrGuid}\" OR guid = \"${guid}\"`);
+				const rows = Database.getRowsFromQuery(res);
+				const chars = rows.map(Character.createFromRow);
+				if (chars.length > 1) {
+					chatHandler.SendSysMessage("Found multiple characters with this name:\n" + chars.map(c => {
+						const date = timestampToDate(c.diedOn);
+						return `- ${c.name} / GUID ${c.guid} / Account ${c.account} / ${c.formatChallenges()} / died on ${Utils.formatDate(date)} at level ${c.level}`;
+					}).join("\n"));
+					return false;
+				}
+				if (chars.length === 0) {
+					chatHandler.SendSysMessage("Could not find character");
+					return false;
+				}
+
+				const char = chars[0];
+				RunCommand(`unban character ${char.name}`);
+				RunCommand(`character deleted restore ${char.guid}`);
+				char.diedOn = null;
+				char.dead = false;
+				this.characters.set(char.guid, char);
+				char.save();
+				chatHandler.SendSysMessage("Character restored");
+				return false;
+			}
 			if (["info", "inspect"].includes(cmd)) {
 				let target: Character;
 				if (args.length > 0) {
@@ -881,16 +914,13 @@ class ChallengeModes {
 			? Config.instance.logging.directory
 			: scriptDir + Utils.getPathSeparator() + Config.instance.logging.directory;
 		const date = timestampToDate(parseInt(GetGameTime() + ""));
-		const month = (date.month + 1).toString().padStart(2, "0");
-		const day = date.mday.toString().padStart(2, "0");
-		const fileDate = `${date.year}_${month}_${day}`;
-		const [f, _, __] = io.open(logDir + Utils.getPathSeparator() + `challengemodes_${fileDate}.log`, "a");
+		const [f, _, __] = io.open(logDir + Utils.getPathSeparator() + `challengemodes_${Utils.formatDate(date, "_")}.log`, "a");
 		if (!f) {
 			return;
 		}
 
 		const playerStr = player != undefined ? ` [${player.GetName()} (${player.GetGUID()})]` : "";
-		f.write(`[${date.year}-${month}-${day} ${date.hour.toString().padStart(2, "0")}:${date.min.toString().padStart(2, "0")}:${date.sec.toString().padStart(2, "0")} UTC]${playerStr} ${text}\n`);
+		f.write(`[${Utils.formatDate(date)} ${date.hour.toString().padStart(2, "0")}:${date.min.toString().padStart(2, "0")}:${date.sec.toString().padStart(2, "0")} UTC]${playerStr} ${text}\n`);
 		f.close();
 	}
 
