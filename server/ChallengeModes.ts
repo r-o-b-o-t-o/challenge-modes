@@ -603,7 +603,7 @@ class ChallengeModes {
 		}
 
 		if (Config.instance.announcePermanentDeaths && player.GetLevel() >= Config.instance.announcePermanentDeathsMinLevel) {
-			SendWorldMessage(`${this.getColoredName(player)} was killed by ${killer.GetName()} at level ${player.GetLevel()} in ${Areas[player.GetAreaId()]} (${char.formatChallenges()} Challenge).`);
+			SendWorldMessage(`${this.getColoredName(player)} was killed by ${killer.GetName()} at level ${player.GetLevel()} in ${this.formatArea(player)} (${char.formatChallenges()} Challenge).`);
 		}
 		this.onPlayerDied(player);
 	}
@@ -620,9 +620,9 @@ class ChallengeModes {
 
 		if (Config.instance.announcePermanentDeaths && killed.GetLevel() >= Config.instance.announcePermanentDeathsMinLevel) {
 			if (killer.GetGUID() === killed.GetGUID()) {
-				SendWorldMessage(`${this.getColoredName(killed)} died at level ${killed.GetLevel()} in ${Areas[killed.GetAreaId()]} (${char.formatChallenges()} Challenge).`);
+				SendWorldMessage(`${this.getColoredName(killed)} died at level ${killed.GetLevel()} in ${this.formatArea(killed)} (${char.formatChallenges()} Challenge).`);
 			} else {
-				SendWorldMessage(`${this.getColoredName(killed)} was killed by player ${killer.GetName()} at level ${killed.GetLevel()} in ${Areas[killed.GetAreaId()]} (${char.formatChallenges()} Challenge).`);
+				SendWorldMessage(`${this.getColoredName(killed)} was killed by player ${killer.GetName()} at level ${killed.GetLevel()} in ${this.formatArea(killed)} (${char.formatChallenges()} Challenge).`);
 			}
 		}
 
@@ -987,6 +987,21 @@ class ChallengeModes {
 			11: "FF7C0A",
 		};
 		return `|CFF${colors[classId]}${name}|r`;
+	}
+
+	private formatArea(player: Player): string {
+		const area = Areas[player.GetAreaId()];
+		if (!area) {
+			return "unknown area";
+		}
+
+		let result = area.n;
+		const parent = area.p ? Areas[area.p] : null;
+		if (parent) {
+			result += `, ${parent.n}`;
+		}
+
+		return result;
 	}
 }
 
