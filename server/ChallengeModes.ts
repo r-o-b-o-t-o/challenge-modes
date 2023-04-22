@@ -378,6 +378,10 @@ class ChallengeModes {
 				return null;
 			};
 			const isGroupedWithPlayer = (unit: Unit) => {
+				const controller = GetPlayerByGUID(unit.GetControllerGUID());
+				if (controller && controller.IsInSameRaidWith(player)) {
+					return true;
+				}
 				const asPlayer = getUnitAsPlayer(unit);
 				if (asPlayer) {
 					return asPlayer.IsInSameRaidWith(player);
