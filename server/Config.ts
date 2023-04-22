@@ -23,6 +23,7 @@ export default class Config {
 		completed: boolean;
 		rewards: boolean;
 		mobTagging: boolean | number;
+		manualDelete: boolean;
 	};
 	public broadcasts: string[];
 	public broadcastFrequency: number;

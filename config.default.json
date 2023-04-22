@@ -16,7 +16,8 @@
 		"deleting": true,
 		"completed": true,
 		"rewards": true,
-		"mobTagging": 10
+		"mobTagging": 10,
+		"manualDelete": true
 	},
 	"broadcasts": [],
 	"broadcastFrequency": 3600,

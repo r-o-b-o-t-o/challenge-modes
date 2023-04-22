@@ -187,6 +187,7 @@ class ChallengeModes {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_GROUP_INVITE, (...args) => this.onPlayerCanGroupInvite(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_SPELL_CAST, (...args) => this.onPlayerCastSpell(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_COMMAND, (...args) => this.onCommand(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CHARACTER_DELETE, (...args) => this.onCharacterDeleted(...args));
 	}
 
 	private registerPacketEvents() {
@@ -858,6 +859,16 @@ class ChallengeModes {
 		}
 	}
 
+	private onCharacterDeleted(event: PlayerEvents, guid: number) {
+		if (this.characters.has(guid)) {
+			const char = this.characters.get(guid);
+			this.characters.delete(char.guid);
+			char.delete();
+			if (Config.instance.logging.manualDelete) {
+				this.log(`Manually deleted (${char.formatChallenges()})`, char);
+			}
+		}
+	}
 
 	private cancelPacket(event: PacketEvents, packet: WorldPacket, player: Player): boolean {
 		return !this.isPlayerEnlisted(player);
@@ -947,7 +958,7 @@ class ChallengeModes {
 		return this.characters.get(player);
 	}
 
-	private log(text: string, player?: Player) {
+	private log(text: string, player?: Character | Player) {
 		const [scriptDir] = string.match(debug.getinfo(1).source, "@?(.*/)");
 		const logDir = Utils.isPathAbsolute(Config.instance.logging.directory)
 			? Config.instance.logging.directory
@@ -958,7 +969,13 @@ class ChallengeModes {
 			return;
 		}
 
-		const playerStr = player != undefined ? ` [${player.GetName()} (${player.GetGUID()})]` : "";
+		const playerStr = player == undefined
+			? ""
+			: (
+				player instanceof Character
+					? ` [${player.name} (${player.guid})]`
+					: ` [${player.GetName()} (${player.GetGUID()})]`
+			);
 		f.write(`[${Utils.formatDate(date)} ${date.hour.toString().padStart(2, "0")}:${date.min.toString().padStart(2, "0")}:${date.sec.toString().padStart(2, "0")} UTC]${playerStr} ${text}\n`);
 		f.close();
 	}

@@ -81,6 +81,10 @@ export default class Character {
 		`);
 	}
 
+	public delete(): void {
+		CharDBExecute(`DELETE FROM ${Character.table()} WHERE guid = ${this.guid}`);
+	}
+
 	public getRank(cb: (rank: number) => void) {
 		CharDBQueryAsync(`
 			SELECT ranking FROM (
