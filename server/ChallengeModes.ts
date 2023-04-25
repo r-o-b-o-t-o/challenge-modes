@@ -271,7 +271,7 @@ class ChallengeModes {
 			const char = this.characters.get(key);
 			const player = GetPlayerByGUID(char.guid);
 			if (player !== null) {
-				player.SendChatMessageToPlayer(ChatMsg.CHAT_MSG_SYSTEM, Language.LANG_COMMON, str, player);
+				player.SendBroadcastMessage(str);
 			}
 		}
 	}
