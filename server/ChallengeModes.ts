@@ -786,7 +786,7 @@ class ChallengeModes {
 				chatHandler.SendSysMessage("Character restored");
 				return false;
 			}
-			if (["info", "inspect"].includes(cmd)) {
+			if (["info", "inspect", "i"].includes(cmd)) {
 				let target: Character;
 				if (args.length > 0) {
 					const name = args.shift().toLowerCase();
