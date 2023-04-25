@@ -814,13 +814,17 @@ class ChallengeModes {
 				if (guild.GetName() === Config.instance.guildName && [0, 1].includes(player.GetGuildRank())) {
 					const target = GetPlayerByName(name);
 					if (target) {
+						if (target.IsInGuild() && target.GetGuild().GetId() === guild.GetId()) {
+							if ([0, 1].includes(target.GetGuildRank())) {
+								chatHandler.SendSysMessage(`Cannot ban ${this.getColoredName(target)} from the guild.`);
+								return false;
+							}
+							guild.DeleteMember(target, false);
+						}
+
 						const ban = new GuildBan(target.GetAccountId());
 						ban.save();
 						this.guildBans.add(ban.account);
-
-						if (target.IsInGuild() && target.GetGuild().GetId() === guild.GetId()) {
-							guild.DeleteMember(target, false);
-						}
 
 						chatHandler.SendSysMessage(`${this.getColoredName(target)}'s account has been banned from the guild.`);
 					} else {
