@@ -97,6 +97,12 @@ class ChallengeModes {
 						return false;
 					}
 
+					for (let enchSlot = 0; enchSlot <= 6; ++enchSlot) {
+						if (item.GetEnchantmentId(enchSlot) !== 0) {
+							return false;
+						}
+					}
+
 					items[entry] = count;
 				}
 			}
