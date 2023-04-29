@@ -809,7 +809,7 @@ challengeModes.hofWindow.cbMyChars = CreateCheckbox("ChallengeModesHoFCbMyChars"
 
 -- Scrollframe
 challengeModes.hofWindow.scrollParent = CreateFrame("Frame", nil, challengeModes.hofWindow)
-challengeModes.hofWindow.scrollParent:SetSize(350 * scaleX, 300 * scaleY)
+challengeModes.hofWindow.scrollParent:SetSize(370 * scaleX, 300 * scaleY)
 challengeModes.hofWindow.scrollParent:SetPoint("TOP", 0, -210)
 challengeModes.hofWindow.scrollParent:SetBackdrop({
 	bgFile = "Interface/Tooltips/UI-Tooltip-Background",
@@ -825,7 +825,7 @@ challengeModes.hofWindow.scrollParent:SetBackdropBorderColor(0.5, 0.5, 0.5)
 local columnsX = 25 * scaleX - 10 + 4
 challengeModes.hofWindow.scrollColumn1 = challengeModes.hofWindow.scrollParent:CreateFontString()
 challengeModes.hofWindow.scrollColumn1:SetPoint("TOPLEFT", columnsX, -4)
-challengeModes.hofWindow.scrollColumn1:SetWidth(80)
+challengeModes.hofWindow.scrollColumn1:SetWidth(100)
 challengeModes.hofWindow.scrollColumn1:SetJustifyH("CENTER")
 challengeModes.hofWindow.scrollColumn1:SetFont("Fonts/FRIZQT__.TTF", 13)
 challengeModes.hofWindow.scrollColumn1:SetText(L("HoF_Name"))
@@ -852,7 +852,7 @@ local scrollName = challengeModes.hofWindow.scroll:GetName()
 challengeModes.hofWindow.scrollbar = _G[scrollName .. "ScrollBar"]
 challengeModes.hofWindow.scrollupbutton = _G[scrollName .. "ScrollBarScrollUpButton"]
 challengeModes.hofWindow.scrolldownbutton = _G[scrollName .. "ScrollBarScrollDownButton"]
-challengeModes.hofWindow.scroll:SetSize(300 * scaleX, 264 * scaleY)
+challengeModes.hofWindow.scroll:SetSize(320 * scaleX, 264 * scaleY)
 challengeModes.hofWindow.scroll:SetPoint("TOPLEFT", 10, -24)
 
 challengeModes.hofWindow.container = CreateFrame("Frame", "ChallengeModesHoFPlayers", challengeModes.hofWindow.scroll)
@@ -921,7 +921,7 @@ local scrollY = 0
 local function CreateHoFRow()
 	local row = CreateFrame("Button", nil, challengeModes.hofWindow.container)
 	row:SetPoint("TOP", 0, -scrollY)
-	row:SetSize(300 * scaleX, challengeModes.hofWindow.rowHeight)
+	row:SetSize(challengeModes.hofWindow.container:GetWidth(), challengeModes.hofWindow.rowHeight)
 	row:SetHighlightTexture("Interface/FriendsFrame/UI-FriendsFrame-HighlightBar", "ADD")
 
 	row.highlight = row:CreateTexture()
@@ -938,7 +938,7 @@ local function CreateHoFRow()
 	row.txtName = row:CreateFontString()
 	row.txtName:SetPoint("TOPLEFT", x, 0)
 	row.txtName:SetFont("Fonts/FRIZQT__.TTF", 12)
-	row.txtName:SetWidth(85)
+	row.txtName:SetWidth(challengeModes.hofWindow.scrollColumn1:GetWidth())
 	row.txtName:SetHeight(challengeModes.hofWindow.rowHeight)
 	row.txtName:SetJustifyH("CENTER")
 	x = x + row.txtName:GetWidth()
@@ -946,7 +946,7 @@ local function CreateHoFRow()
 	row.txtLevel = row:CreateFontString()
 	row.txtLevel:SetPoint("TOPLEFT", x, 0)
 	row.txtLevel:SetFont("Fonts/FRIZQT__.TTF", 12)
-	row.txtLevel:SetWidth(40)
+	row.txtLevel:SetWidth(challengeModes.hofWindow.scrollColumn2:GetWidth())
 	row.txtLevel:SetHeight(challengeModes.hofWindow.rowHeight)
 	row.txtLevel:SetJustifyH("CENTER")
 	row.txtLevel:SetTextColor(1, 1, 1, 1)
@@ -955,7 +955,7 @@ local function CreateHoFRow()
 	row.txtRank = row:CreateFontString()
 	row.txtRank:SetPoint("TOPLEFT", x, 0)
 	row.txtRank:SetFont("Fonts/FRIZQT__.TTF", 12)
-	row.txtRank:SetWidth(70)
+	row.txtRank:SetWidth(challengeModes.hofWindow.scrollColumn3:GetWidth())
 	row.txtRank:SetHeight(challengeModes.hofWindow.rowHeight)
 	row.txtRank:SetJustifyH("CENTER")
 	row.txtRank:SetTextColor(1, 1, 1, 1)
