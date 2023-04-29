@@ -57,7 +57,7 @@ class ChallengeModes {
 			/** @noSelf **/ openHallOfFameUI: (...args: [Player]) => this.openHallOfFameUI(...args),
 			/** @noSelf **/ closeHallOfFameUI: (...args: [Player]) => this.closeHallOfFameUI(...args),
 			/** @noSelf **/ notifyInstallAddon: (...args: [Player, boolean]) => Utils.notifyInstallAddon(...args),
-			/** @noSelf **/ hallOfFameData: (...args: [Player, number, boolean, boolean, boolean, boolean, number]) => this.hallOfFameData(...args),
+			/** @noSelf **/ hallOfFameData: (...args: [Player, number, boolean, boolean, boolean, boolean, boolean, number[], number]) => this.hallOfFameData(...args),
 		});
 
 		this.pickRandomShrineBuff();
@@ -288,14 +288,14 @@ class ChallengeModes {
 		return true;
 	}
 
-	private hallOfFameData(player: Player, challenge: EChallengeMode, completed: boolean, failed: boolean, active: boolean, myChars: boolean, offset: number) {
+	private hallOfFameData(player: Player, challenge: EChallengeMode, completed: boolean, failed: boolean, active: boolean, myChars: boolean, solo: boolean, classes: number[], offset: number) {
 		if (!this.hallOfFameGobj.isPlayerInRange(player)) {
 			return;
 		}
 
 		const guid = player.GetGUID();
 		this.hallOfFame.fetch({
-			player: guid, challenge, completed, failed, active, myChars, account: player.GetAccountId(), offset,
+			player: guid, challenge, completed, failed, active, myChars, solo, classes, account: player.GetAccountId(), offset,
 			callback: ({ rows, totalRows }) => {
 				const player = GetPlayerByGUID(guid);
 				if (player) {

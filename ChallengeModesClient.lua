@@ -136,10 +136,14 @@ locales["enUS"] = {
 	HoF_Completed = "Completed",
 	HoF_Dead = "Failed",
 	HoF_Active = "Active",
-	HoF_MyCharsOnly = "My Characters Only",
+	HoF_MyChars = "My Characters",
+	HoF_Solo = "Solo",
+	HoF_Classes = "{1} classes displayed",
 	HoF_Name = "Name",
 	HoF_Level = "Level",
 	HoF_Rank = "Ranking",
+	SelectAll = "Select All",
+	SelectNone = "Select None",
 	Death_Title = "YOU DIED",
 	Completed_Title = "CONGRATULATIONS!",
 	Completed_Text = "{1} faced many challenges,\nbut overcame them through\nsheer will and determination\n\nPlayed for {2}\n\n{3} rank: #{4}",
@@ -184,10 +188,14 @@ locales["frFR"] = {
 	HoF_Completed = "Terminé",
 	HoF_Dead = "Échoué",
 	HoF_Active = "Actif",
-	HoF_MyCharsOnly = "Mes Personnages Seulement",
+	HoF_MyChars = "Mes Personnages",
+	HoF_Solo = "Solo",
+	HoF_Classes = "{1} classes affichées",
 	HoF_Name = "Nom",
 	HoF_Level = "Niv.",
 	HoF_Rank = "Rang",
+	SelectAll = "Sélectionner Tout",
+	SelectNone = "Sélectionner Aucun",
 	Death_Title = "VOUS ÊTES MORT",
 	Completed_Title = "FÉLICITATIONS!",
 	Completed_Text = "{1} a fait face à de\nnombreux défis, mais les a surmontés\ngrâce à sa volonté et sa détermination\n\n{2} de jeu\n\nRang {3} : #{4}",
@@ -231,10 +239,14 @@ locales["deDE"] = {
 	HoF_Completed = "Beendet",
 	HoF_Dead = "Fehlgeschlagen",
 	HoF_Active = "Aktiv",
-	HoF_MyCharsOnly = "Nur meine Charaktere",
+	HoF_MyChars = "Meine Charaktere",
+	HoF_Solo = "Solo",
+	HoF_Classes = "{1} Klassen",
 	HoF_Name = "Name",
 	HoF_Level = "Level",
 	HoF_Rank = "Rang",
+	SelectAll = "Alles auswählen",
+	SelectNone = "Keine auswählen",
 	Death_Title = "IHR SEIT TOT",
 	Completed_Title = "GLÜCKWUNSCH!",
 	Completed_Text = "{1} hat vielen Herausforderungen\ngetrotzt, und sie durch\nbloßen Willen und\nEntschlossenheit bestanden.\n\nSpielzeit: {2}\n\n{3} Rang: #{4}",
@@ -278,10 +290,14 @@ locales["esES"] = {
 	HoF_Completed = "Completado",
 	HoF_Dead = "Fallado",
 	HoF_Active = "Activo",
-	HoF_MyCharsOnly = "Sólo Mis Personajes",
+	HoF_MyChars = "Mis Personajes",
+	HoF_Solo = "Solo",
+	HoF_Classes = "{1} clases mostradas",
 	HoF_Name = "Nombre",
 	HoF_Level = "Nivel",
 	HoF_Rank = "Ranking",
+	SelectAll = "Seleccionar Todo",
+	SelectNone = "Seleccionar Ninguno",
 	Death_Title = "HAS MUERTO",
 	Completed_Title = "¡FELICITACIONES!",
 	Completed_Text = "{1} enfrentó muchos desafios,\npero los superó con\ndeterminación y voluntad pura\n\nHa jugado {2}\n\n{3} rango: #{4}",
@@ -621,8 +637,7 @@ challengeModes.confirmWindow.cancelButton:SetScript("OnClick", function()
 end)
 
 
-local scrollButtons = { challengeModes.mainWindow.scroll1Button, challengeModes.mainWindow.scroll2Button, challengeModes.mainWindow.scroll3Button }
-for _, btn in pairs(scrollButtons) do
+for _, btn in pairs({ challengeModes.mainWindow.scroll1Button, challengeModes.mainWindow.scroll2Button, challengeModes.mainWindow.scroll3Button }) do
 	local challengeId
 	local challengeName
 	if btn == challengeModes.mainWindow.scroll1Button then
@@ -805,12 +820,89 @@ challengeModes.hofWindow.cbCompleted = CreateCheckbox("ChallengeModesHoFCbComple
 challengeModes.hofWindow.cbFailed = CreateCheckbox("ChallengeModesHoFCbFailed", challengeModes.hofWindow, "TOP", -11, -160, L("HoF_Dead"), true, "Interface/ChallengeModes/HoFDead")
 challengeModes.hofWindow.cbActive = CreateCheckbox("ChallengeModesHoFCbActive", challengeModes.hofWindow, "TOP", 94, -160, L("HoF_Active"), true, "Interface/ChallengeModes/HoFActive")
 
-challengeModes.hofWindow.cbMyChars = CreateCheckbox("ChallengeModesHoFCbMyChars", challengeModes.hofWindow, "TOP", -56, -180, L("HoF_MyCharsOnly"))
+challengeModes.hofWindow.cbMyChars = CreateCheckbox("ChallengeModesHoFCbMyChars", challengeModes.hofWindow, "TOP", -145, -184, L("HoF_MyChars"))
+challengeModes.hofWindow.cbSolo = CreateCheckbox("ChallengeModesHoFCbSolo", challengeModes.hofWindow, "TOP", -20, -184, L("HoF_Solo"))
+
+challengeModes.hofWindow.classes = {}
+for _, classId in pairs({ 1, 2, 3, 4, 5, 7, 8, 9, 11 }) do
+	challengeModes.hofWindow.classes[classId] = true
+end
+local classIconCoords = {}
+classIconCoords["WARRIOR"] = { 0.0, 0.25, 0.0, 0.25 }
+classIconCoords["PALADIN"] = { 0.0, 0.25, 0.5, 0.75 }
+classIconCoords["HUNTER"] = { 0.0, 0.25, 0.25, 0.5 }
+classIconCoords["ROGUE"] = { 0.5, 0.75, 0.0, 0.25 }
+classIconCoords["PRIEST"] = { 0.5, 0.75, 0.25, 0.5 }
+classIconCoords["SHAMAN"] = { 0.25, 0.5, 0.25, 0.5 }
+classIconCoords["MAGE"] = { 0.25, 0.5, 0.0, 0.25 }
+classIconCoords["WARLOCK"] = { 0.75, 1.0, 0.25, 0.5 }
+classIconCoords["DRUID"] = { 0.75, 1.0, 0.0, 0.25 }
+local function ClassDropDown_Menu(frame, level, menuList)
+	local info = UIDropDownMenu_CreateInfo()
+	info.func = frame.SetValue
+	info.keepShownOnClick = false
+
+	info.arg1 = -1
+	info.text = L("SelectAll")
+	info.notCheckable = true
+	UIDropDownMenu_AddButton(info)
+	info.arg1 = -2
+	info.text = L("SelectNone")
+	info.notCheckable = true
+	UIDropDownMenu_AddButton(info)
+
+	info.keepShownOnClick = true
+	info.notCheckable = false
+	info.icon = "Interface/GLUES/CHARACTERCREATE/UI-CHARACTERCREATE-CLASSES"
+	for key, checked in pairs(challengeModes.hofWindow.classes) do
+		local className = classNames[key]
+		info.arg1 = key
+		info.checked = checked
+		info.text = LOCALIZED_CLASS_NAMES_MALE[className]
+		info.colorCode = string.format("|cff%2x%2x%2x", 255 * RAID_CLASS_COLORS[className]["r"], 255 * RAID_CLASS_COLORS[className]["g"], 255 * RAID_CLASS_COLORS[className]["b"])
+		info.tCoordLeft, info.tCoordRight, info.tCoordTop, info.tCoordBottom = unpack(classIconCoords[className])
+		local iconMargin = 0.02
+		info.tCoordLeft, info.tCoordRight, info.tCoordTop, info.tCoordBottom = info.tCoordLeft + iconMargin, info.tCoordRight - iconMargin, info.tCoordTop + iconMargin, info.tCoordBottom - iconMargin
+		UIDropDownMenu_AddButton(info)
+	end
+end
+challengeModes.hofWindow.dropdownClass = CreateFrame("Frame", "ChallengeModesHoFClasses", challengeModes.hofWindow, "UIDropDownMenuTemplate")
+challengeModes.hofWindow.dropdownClass:SetPoint("TOP", 94, -182)
+function challengeModes.hofWindow.dropdownClass:SetValue(val)
+	if val == -1 then
+		for key, _ in pairs(challengeModes.hofWindow.classes) do
+			challengeModes.hofWindow.classes[key] = true
+		end
+		ToggleDropDownMenu(nil, nil, challengeModes.hofWindow.dropdownClass)
+	elseif val == -2 then
+		for key, _ in pairs(challengeModes.hofWindow.classes) do
+			challengeModes.hofWindow.classes[key] = false
+		end
+		ToggleDropDownMenu(nil, nil, challengeModes.hofWindow.dropdownClass)
+	else
+		challengeModes.hofWindow.classes[val] = not challengeModes.hofWindow.classes[val]
+	end
+
+	RequestHoFData()
+	challengeModes.hofWindow.dropdownClass:UpdateText()
+end
+function challengeModes.hofWindow.dropdownClass:UpdateText()
+	local count = 0
+	for key, checked in pairs(challengeModes.hofWindow.classes) do
+		if checked then
+			count = count + 1
+		end
+	end
+	UIDropDownMenu_SetText(challengeModes.hofWindow.dropdownClass, L("HoF_Classes", count))
+end
+UIDropDownMenu_SetWidth(challengeModes.hofWindow.dropdownClass, 120)
+UIDropDownMenu_Initialize(challengeModes.hofWindow.dropdownClass, ClassDropDown_Menu)
+challengeModes.hofWindow.dropdownClass:UpdateText()
 
 -- Scrollframe
 challengeModes.hofWindow.scrollParent = CreateFrame("Frame", nil, challengeModes.hofWindow)
 challengeModes.hofWindow.scrollParent:SetSize(370 * scaleX, 300 * scaleY)
-challengeModes.hofWindow.scrollParent:SetPoint("TOP", 0, -210)
+challengeModes.hofWindow.scrollParent:SetPoint("TOP", 0, -214)
 challengeModes.hofWindow.scrollParent:SetBackdrop({
 	bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 	edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
@@ -852,7 +944,7 @@ local scrollName = challengeModes.hofWindow.scroll:GetName()
 challengeModes.hofWindow.scrollbar = _G[scrollName .. "ScrollBar"]
 challengeModes.hofWindow.scrollupbutton = _G[scrollName .. "ScrollBarScrollUpButton"]
 challengeModes.hofWindow.scrolldownbutton = _G[scrollName .. "ScrollBarScrollDownButton"]
-challengeModes.hofWindow.scroll:SetSize(320 * scaleX, 264 * scaleY)
+challengeModes.hofWindow.scroll:SetSize(challengeModes.hofWindow.scrollParent:GetWidth() - 50 * scaleX, challengeModes.hofWindow.scrollParent:GetHeight() - 36 * scaleY)
 challengeModes.hofWindow.scroll:SetPoint("TOPLEFT", 10, -24)
 
 challengeModes.hofWindow.container = CreateFrame("Frame", "ChallengeModesHoFPlayers", challengeModes.hofWindow.scroll)
@@ -1033,9 +1125,16 @@ function RequestHoFData()
 	local failed = challengeModes.hofWindow.cbFailed:GetChecked()
 	local active = challengeModes.hofWindow.cbActive:GetChecked()
 	local myChars = challengeModes.hofWindow.cbMyChars:GetChecked()
+	local solo = challengeModes.hofWindow.cbSolo:GetChecked()
+	local classes = {}
+	for key, checked in pairs(challengeModes.hofWindow.classes) do
+		if checked then
+			tinsert(classes, key)
+		end
+	end
 	ClearHoF()
 	challengeModes.hofWindow.loadingSpinner:Show()
-	AIO.Handle(channelName, "hallOfFameData", challenge, completed, failed, active, myChars, challengeModes.hofWindow.dbOffset)
+	AIO.Handle(channelName, "hallOfFameData", challenge, completed, failed, active, myChars, solo, classes, challengeModes.hofWindow.dbOffset)
 end
 
 challengeModes.hofWindow.btnPrev:SetScript("OnClick", function()

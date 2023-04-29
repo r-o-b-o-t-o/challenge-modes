@@ -10,6 +10,8 @@ interface IHallOfFameRequest {
 	failed: boolean;
 	active: boolean;
 	myChars: boolean;
+	solo: boolean;
+	classes: number[];
 	account: number;
 	offset: number;
 	callback: (data: IHallOfFameData) => void;
@@ -52,7 +54,8 @@ export default class HallOfFame {
 			.join(" OR ");
 		const filter = `
 			(${stateFilters !== "" ? stateFilters : "0"}) AND
-			(${req.myChars ? `account = ${req.account}` : "1"})
+			(${req.myChars ? `account = ${req.account}` : "1"}) AND
+			(${req.classes.length > 0 ? `class IN (${req.classes.join(", ")})` : "0"})
 		`;
 
 		CharDBQueryAsync(`
