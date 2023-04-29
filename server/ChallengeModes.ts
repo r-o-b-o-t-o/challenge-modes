@@ -777,8 +777,8 @@ class ChallengeModes {
 				}
 
 				const char = chars[0];
-				RunCommand(`unban character ${char.name}`);
 				RunCommand(`character deleted restore ${char.guid}`);
+				RunCommand(`unban character ${char.name}`);
 				char.diedOn = null;
 				char.dead = false;
 				this.characters.set(char.guid, char);
