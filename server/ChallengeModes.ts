@@ -636,7 +636,7 @@ class ChallengeModes {
 
 	private onPlayerDied(player: Player) {
 		if (Config.instance.logging.died) {
-			this.log("Died", player);
+			this.log(`Died (map: ${player.GetMapId()}, coords: ${player.GetX()} ; ${player.GetY()} ; ${player.GetZ()})`, player);
 		}
 		const char = this.getCharacter(player);
 		char.dead = true;
