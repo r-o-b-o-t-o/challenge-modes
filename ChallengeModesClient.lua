@@ -637,7 +637,8 @@ challengeModes.confirmWindow.cancelButton:SetScript("OnClick", function()
 end)
 
 
-for _, btn in pairs({ challengeModes.mainWindow.scroll1Button, challengeModes.mainWindow.scroll2Button, challengeModes.mainWindow.scroll3Button }) do
+local scrollButtons = { challengeModes.mainWindow.scroll1Button, challengeModes.mainWindow.scroll2Button, challengeModes.mainWindow.scroll3Button }
+for _, btn in pairs(scrollButtons) do
 	local challengeId
 	local challengeName
 	if btn == challengeModes.mainWindow.scroll1Button then
