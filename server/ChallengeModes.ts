@@ -26,6 +26,7 @@ class ChallengeModes {
 	private readonly CMSG_GUILD_BANK_DEPOSIT_MONEY = 0x3EC;
 	private readonly CMSG_GUILD_BANK_WITHDRAW_MONEY = 0x3ED;
 	private readonly CMSG_PET_LEARN_TALENT = 0x47A;
+	private readonly CMSG_LEARN_PREVIEW_TALENTS_PET = 0x4C2;
 	private readonly CMSG_ACCEPT_TRADE = 0x11A;
 	private readonly PLAYER_FIELD_VENDORBUYBACK_SLOT_1 = 472;
 	private readonly PLAYER_FIELD_BUYBACK_PRICE_1 = 1201;
@@ -205,6 +206,7 @@ class ChallengeModes {
 			RegisterPacketEvent(opcode, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.cancelPacket(...args));
 		}
 		RegisterPacketEvent(this.CMSG_PET_LEARN_TALENT, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onPetLearnTalent(...args));
+		RegisterPacketEvent(this.CMSG_LEARN_PREVIEW_TALENTS_PET, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onPetLearnTalent(...args));
 		RegisterPacketEvent(this.CMSG_ACCEPT_TRADE, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onAcceptTrade(...args));
 	}
 
