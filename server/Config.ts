@@ -10,6 +10,7 @@ export default class Config {
 	public announcePermanentDeathsMinLevel: number;
 	public announceCompletions: boolean;
 	public downloadUrl: string;
+	public markerAuras: { [key: string]: number };
 	public hallOfFameMaxResults: number;
 	public shrineBuffs: number[];
 	public shrineBuffChangeTime: number;

@@ -6,6 +6,7 @@
 	"announcePermanentDeathsMinLevel": 1,
 	"announceCompletions": true,
 	"downloadUrl": "",
+	"markerAuras": { "1": 2000100, "2": 2000101, "4": 2000102 },
 	"hallOfFameMaxResults": 250,
 	"shrineBuffs": [2000000, 2000001, 2000002, 2000003, 2000004, 2000005, 2000006],
 	"shrineBuffChangeTime": 3600,

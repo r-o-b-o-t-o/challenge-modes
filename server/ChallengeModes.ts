@@ -314,6 +314,14 @@ class ChallengeModes {
 		if (this.isPlayerEnlisted(player)) {
 			AIO.Handle(player, Config.instance.channelName, "CheckAddonVersion", this.addonVersion);
 
+			const char = this.getCharacter(player);
+			for (const key in Config.instance.markerAuras) {
+				const challenge = parseInt(key);
+				if (char.hasChallenge(challenge) && !player.HasAura(Config.instance.markerAuras[key])) {
+					player.AddAura(Config.instance.markerAuras[key], player);
+				}
+			}
+
 			player.UpdatePlayerSetting(this.settingsWeekendXpSource, this.settingsWeekendXpDisable, 1);
 		}
 	}
@@ -520,6 +528,7 @@ class ChallengeModes {
 	private onPlayerCompletedChallenge(char: Character) {
 		this.sendRewards(char);
 		this.openCompletedUI(char);
+		this.removeMarkerAuras(char);
 	}
 
 	private openCompletedUI(char: Character) {
@@ -561,6 +570,17 @@ class ChallengeModes {
 					}
 				}
 			}
+		}
+	}
+
+	private removeMarkerAuras(char: Character) {
+		const player = GetPlayerByGUID(char.guid);
+		if (!player) {
+			return;
+		}
+
+		for (const key in Config.instance.markerAuras) {
+			player.RemoveAura(Config.instance.markerAuras[key]);
 		}
 	}
 
@@ -950,6 +970,7 @@ class ChallengeModes {
 				group.RemoveMember(player.GetGUID(), RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
 			}
 
+			player.AddAura(Config.instance.markerAuras[challenge.toString()], player);
 			player.UpdatePlayerSetting(this.settingsWeekendXpSource, this.settingsWeekendXpDisable, 1);
 		});
 	}
