@@ -32,6 +32,9 @@ class ChallengeModes {
 	private readonly PLAYER_FIELD_BUYBACK_PRICE_1 = 1201;
 	private readonly PLAYER_FIELD_BUYBACK_TIMESTAMP_1 = 1213;
 
+	private readonly settingsWeekendXpSource = "mod-double-xp-weekend";
+	private readonly settingsWeekendXpDisable = 1;
+
 	// Ids
 	private readonly allianceGobjEntry = 2000000;
 	private readonly hordeGobjEntry = 2000001;
@@ -310,6 +313,8 @@ class ChallengeModes {
 	private onPlayerLogin(event: PlayerEvents, player: Player) {
 		if (this.isPlayerEnlisted(player)) {
 			AIO.Handle(player, Config.instance.channelName, "CheckAddonVersion", this.addonVersion);
+
+			player.UpdatePlayerSetting(this.settingsWeekendXpSource, this.settingsWeekendXpDisable, 1);
 		}
 	}
 
@@ -944,6 +949,8 @@ class ChallengeModes {
 				const group = player.GetGroup();
 				group.RemoveMember(player.GetGUID(), RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
 			}
+
+			player.UpdatePlayerSetting(this.settingsWeekendXpSource, this.settingsWeekendXpDisable, 1);
 		});
 	}
 
