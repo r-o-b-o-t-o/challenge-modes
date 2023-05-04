@@ -322,6 +322,14 @@ class ChallengeModes {
 				}
 			}
 
+			if (char.isIronman()) {
+				const guid = player.GetGUID();
+				CreateLuaEvent(() => {
+					const player = GetPlayerByGUID(guid);
+					player?.ResetPetTalents();
+				}, 10_000);
+			}
+
 			player.UpdatePlayerSetting(this.settingsWeekendXpSource, this.settingsWeekendXpDisable, 1);
 		}
 	}
