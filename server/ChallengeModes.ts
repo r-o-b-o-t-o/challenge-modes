@@ -409,7 +409,7 @@ class ChallengeModes {
 		}, 3000); // Wait for a few seconds, otherwise the name gets written again since the char data is saved when the player is disconnected
 	}
 
-	private onPlayerGiveXP(event: PlayerEvents, player: Player, amount: number, victim: Unit): number {
+	private onPlayerGiveXP(event: PlayerEvents, player: Player, amount: number, victim: Unit, source: number): number {
 		if (!this.isPlayerEnlisted(player)) {
 			return amount;
 		}
