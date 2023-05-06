@@ -64,8 +64,7 @@ class ChallengeModes {
 			/** @noSelf **/ hallOfFameData: (...args: [Player, number, boolean, boolean, boolean, boolean, boolean, number[], number]) => this.hallOfFameData(...args),
 		});
 
-		this.pickRandomShrineBuff();
-		CreateLuaEvent(() => this.pickRandomShrineBuff(), Config.instance.shrineBuffChangeTime * 1000, 0);
+		this.pickRandomShrineBuff(true);
 		this.broadcastIdx = 0;
 		CreateLuaEvent(() => this.broadcast(), Config.instance.broadcastFrequency * 1000, 0);
 
@@ -263,8 +262,27 @@ class ChallengeModes {
 		return true;
 	}
 
-	private pickRandomShrineBuff() {
-		this.shrineBuff = Config.instance.shrineBuffs[Math.floor(Math.random() * Config.instance.shrineBuffs.length)];
+	private pickRandomShrineBuff(firstRun = false) {
+		const prevBuff = this.shrineBuff;
+		do {
+			this.shrineBuff = Config.instance.shrineBuffs[Math.floor(Math.random() * Config.instance.shrineBuffs.length)];
+		} while (this.shrineBuff === prevBuff);
+		this.log("Changed shrine buff");
+
+		let nextBuffIn = Config.instance.shrineBuffChangeTime;
+		if (firstRun) {
+			// Find when to run the first switch to a different buff, starting from a "round hour"
+			// e.g., if it's 09:15 AM and shrineBuffChangeTime is 600 (= 10 minutes) then the change will happen at 09:20, then 09:30, 09:40, etc
+			const now = this.getCurrentDate();
+			let t = { ...now }; // Create a copy of the object
+			t.min = 0;
+			t.sec = 0;
+			while (dateToTimestamp(t) <= dateToTimestamp(now)) {
+				t = timestampToDate(dateToTimestamp(t) + Config.instance.shrineBuffChangeTime);
+			}
+			nextBuffIn = dateToTimestamp(t) - dateToTimestamp(now);
+		}
+		CreateLuaEvent(() => this.pickRandomShrineBuff(), nextBuffIn * 1_000);
 	}
 
 	private broadcast() {
