@@ -344,6 +344,13 @@ class ChallengeModes {
 			return;
 		}
 
+		if (!player.IsDead()) {
+			// The repop event may be called when the player is not dead, for example
+			// when you are teleported to the nearest graveyard when disbanding in a dungeon.
+			// Return to prevent deleting characters in these cases.
+			return;
+		}
+
 		// When the player releases spirit (PLAYER_EVENT_ON_REPOP), force them to resurrect.
 		// This will call onPlayerResurrect which handles the character's deletion.
 		player.ResurrectPlayer(1, false);
