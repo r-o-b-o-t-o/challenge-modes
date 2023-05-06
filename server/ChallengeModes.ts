@@ -245,9 +245,9 @@ class ChallengeModes {
 
 	private onShrineUse(event: GameObjectEvents, gobj: GameObject, player: Player) {
 		player.PerformEmote(16); // Kneel
-		const effectAura = 55845;
 
 		if (Config.instance.shrineBuffs?.length > 0 && this.isPlayerEnlisted(player)) {
+			const effectAura = 55845;
 			const guid = player.GetGUID();
 			CreateLuaEvent(() => {
 				const player = GetPlayerByGUID(guid);
