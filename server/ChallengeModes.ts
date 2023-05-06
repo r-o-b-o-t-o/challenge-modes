@@ -7,8 +7,8 @@ import Database from "./db/Database";
 import GuildBan from "./db/GuildBan";
 import Character from "./db/Character";
 import HallOfFame from "./db/HallOfFame";
-import { timestampToDate } from "./date";
 import ChallengeGameObject from "./ChallengeGameObject";
+import { Date, dateToTimestamp, timestampToDate } from "./date";
 import { allChallengeModes, EChallengeMode } from "./EChallengeMode";
 
 const AIO = require("AIO") as Aio;
@@ -1022,7 +1022,7 @@ class ChallengeModes {
 		const logDir = Utils.isPathAbsolute(Config.instance.logging.directory)
 			? Config.instance.logging.directory
 			: scriptDir + Utils.getPathSeparator() + Config.instance.logging.directory;
-		const date = timestampToDate(parseInt(GetGameTime() + ""));
+		const date = this.getCurrentDate();
 		const [f, _, __] = io.open(logDir + Utils.getPathSeparator() + `challengemodes_${Utils.formatDate(date, "_")}.log`, "a");
 		if (!f) {
 			return;
@@ -1035,8 +1035,10 @@ class ChallengeModes {
 					? ` [${player.name} (${player.guid})]`
 					: ` [${player.GetName()} (${player.GetGUID()})]`
 			);
-		f.write(`[${Utils.formatDate(date)} ${date.hour.toString().padStart(2, "0")}:${date.min.toString().padStart(2, "0")}:${date.sec.toString().padStart(2, "0")} UTC]${playerStr} ${text}\n`);
+		const line = `[${Utils.formatDate(date)} ${Utils.formatTime(date)} UTC]${playerStr} ${text}`;
+		f.write(`${line}\n`);
 		f.close();
+		print(line);
 	}
 
 	private getColoredName(player: Character | Player): string {
@@ -1078,6 +1080,10 @@ class ChallengeModes {
 		}
 
 		return result;
+	}
+
+	private getCurrentDate(): Date {
+		return timestampToDate(parseInt(GetGameTime() + ""));
 	}
 }
 

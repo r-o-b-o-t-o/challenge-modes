@@ -54,4 +54,8 @@ export default class Utils {
 		const day = date.mday.toString().padStart(2, "0");
 		return `${date.year}${separator}${month}${separator}${day}`;
 	}
+
+	public static formatTime(date: Date, separator = ":"): string {
+		return `${date.hour.toString().padStart(2, "0")}${separator}${date.min.toString().padStart(2, "0")}${separator}${date.sec.toString().padStart(2, "0")}`;
+	}
 }
