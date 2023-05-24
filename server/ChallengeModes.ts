@@ -344,6 +344,7 @@ class ChallengeModes {
 				const guid = player.GetGUID();
 				CreateLuaEvent(() => {
 					const player = GetPlayerByGUID(guid);
+					player?.ResetTalents();
 					player?.ResetPetTalents();
 				}, 10_000);
 			}
