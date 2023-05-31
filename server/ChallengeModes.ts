@@ -876,7 +876,7 @@ class ChallengeModes {
 				}
 				return false;
 			}
-			if (player && player.IsInGuild() && ["guild"].includes(cmd) && ["ban"].includes(args[0].toLowerCase())) {
+			if (player && player.IsInGuild() && ["guild"].includes(cmd) && ["ban"].includes(args[0]?.toLowerCase())) {
 				const name = args[1];
 				if (name == null || name == "") {
 					chatHandler.SendSysMessage("Usage: .challenge guild ban Playername");
