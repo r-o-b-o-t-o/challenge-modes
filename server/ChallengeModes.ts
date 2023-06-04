@@ -1010,6 +1010,14 @@ class ChallengeModes {
 				group.RemoveMember(player.GetGUID(), RemoveMethod.GROUP_REMOVEMETHOD_LEAVE);
 			}
 
+			// Update guild rank
+			if (player.IsInGuild()) {
+				const guild = player.GetGuild();
+				if (guild.GetName() === Config.instance.guildName) {
+					guild.SetMemberRank(player, Config.instance.guildRanks[char.challenge.toString()]);
+				}
+			}
+
 			player.AddAura(Config.instance.markerAuras[challenge.toString()], player);
 			player.UpdatePlayerSetting(this.settingsWeekendXpSource, this.settingsWeekendXpDisable, 1);
 		});
