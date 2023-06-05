@@ -418,6 +418,9 @@ class ChallengeModes {
 				// Refresh in case of desync, forces rewards to be sent if a character
 				// dinged to max level while the script was disabled
 				this.onPlayerChangeLevel(null, player, char.level);
+			} else if (char.name === "") {
+				char.updateCharacterData(player);
+				char.save();
 			}
 		} else {
 			const guild = player.GetGuild();

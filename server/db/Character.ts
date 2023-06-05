@@ -103,6 +103,8 @@ export default class Character {
 
 	public updateCharacterData(player: Player) {
 		this.name = player.GetName();
+		this.account = player.GetAccountId();
+		this.class = player.GetClass();
 		this.race = player.GetRace();
 		this.gender = player.GetGender();
 		this.level = player.GetLevel();
