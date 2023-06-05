@@ -48,7 +48,8 @@ class ChallengeModes {
 	private readonly bannerGobj: ChallengeGameObject;
 	private readonly hallOfFameGobj: ChallengeGameObject;
 	private characters: PlayerMap<Character>;
-	private guildBans: GuidSet;
+	private guildBans: GuildBan[];
+	private guildCounts: { [key: number]: number };
 	private mobTaggingCounter: PlayerMap<{ value: number; taggers: string[]; cancelId?: number; }>;
 	private shrineBuff: number;
 	private broadcastIdx: number;
@@ -62,17 +63,22 @@ class ChallengeModes {
 			/** @noSelf **/ closeHallOfFameUI: (...args: [Player]) => this.closeHallOfFameUI(...args),
 			/** @noSelf **/ notifyInstallAddon: (...args: [Player, boolean]) => Utils.notifyInstallAddon(...args),
 			/** @noSelf **/ hallOfFameData: (...args: [Player, number, boolean, boolean, boolean, boolean, boolean, number[], number]) => this.hallOfFameData(...args),
+			/** @noself **/ joinGuild: (...args: [Player, string]) => this.joinGuild(...args),
 		});
 
 		this.pickRandomShrineBuff(true);
 		this.broadcastIdx = 0;
 		CreateLuaEvent(() => this.broadcast(), Config.instance.broadcastFrequency * 1000, 0);
+		CreateLuaEvent(() => this.updateGuildCounts(), 60 * 60 * 1000, 0);
+		this.updateGuildCounts();
 
 		this.hallOfFame = new HallOfFame();
 		this.bannerGobj = new ChallengeGameObject(15, "CloseBannerUI");
 		this.hallOfFameGobj = new ChallengeGameObject(15, "CloseHallOfFameUI");
 		this.mobTaggingCounter = new PlayerMap();
+		this.guildCounts = {};
 		this.loadCharacters();
+		this.loadGuildBans();
 		this.registerBannerEvents();
 		this.registerPlayerEvents();
 		this.registerPacketEvents();
@@ -162,13 +168,16 @@ class ChallengeModes {
 
 	private loadCharacters() {
 		this.characters = new PlayerMap<Character>();
-		this.guildBans = new GuidSet();
 
 		for (const char of Character.getAllActive()) {
 			this.characters.set(char.guid, char);
 		}
+	}
+
+	private loadGuildBans() {
+		this.guildBans = [];
 		for (const ban of GuildBan.getAll()) {
-			this.guildBans.add(ban.account);
+			this.guildBans.push(ban);
 		}
 	}
 
@@ -305,6 +314,29 @@ class ChallengeModes {
 		}
 	}
 
+	private updateGuildCounts() {
+		CharDBQueryAsync(`
+			SELECT
+				guild.guildid,
+				(
+					SELECT COUNT(accs.id) AS cnt FROM
+						(SELECT acc.id
+						FROM ${Config.instance.authDatabase}.account acc
+						INNER JOIN ${Config.instance.charactersDatabase}.characters chars ON chars.account = acc.id
+						INNER JOIN ${Config.instance.charactersDatabase}.guild_member gmember ON gmember.guid = chars.guid
+						WHERE gmember.guildid = guild.guildid AND acc.last_login >= NOW() - INTERVAL 1 MONTH
+						GROUP BY acc.id) accs
+				) AS accounts
+			FROM guild
+		`, (res) => {
+			const rows = Database.getRowsFromQuery(res);
+			this.guildCounts = {};
+			for (const row of rows) {
+				this.guildCounts[row.guildid] = row.accounts;
+			}
+		});
+	}
+
 	private onHallOfFameUse(event: GameObjectEvents, gobj: GameObject, player: Player) {
 		this.hallOfFameGobj.use(gobj, player);
 		AIO.Handle(player, Config.instance.channelName, "OpenHallOfFameUI", this.addonVersion, Config.instance.hallOfFameMaxResults);
@@ -326,6 +358,39 @@ class ChallengeModes {
 				}
 			}
 		});
+	}
+
+	private joinGuild(player: Player, guildName: string) {
+		if (!this.isPlayerEnlisted(player)) {
+			return;
+		}
+
+		if (!Config.instance.guildNames.includes(guildName)) {
+			return;
+		}
+
+		const guild = GetGuildByName(guildName);
+		if (!guild) {
+			return;
+		}
+
+		if (this.guildBans.find(b => b.account === player.GetAccountId() && b.guild === guild.GetId()) !== null) {
+			player.SendBroadcastMessage(`You are banned from <${guild.GetName()}>`);
+			return;
+		}
+
+		RunCommand(`guild invite ${player.GetName()} "${guildName}"`);
+
+		const char = this.getCharacter(player);
+		if (Config.instance.guildRanks && Config.instance.guildRanks[char.challenge.toString()] !== undefined) {
+			CreateLuaEvent(() => {
+				const player = GetPlayerByGUID(char.guid);
+				if (player) {
+					const guild = player.GetGuild();
+					guild?.SetMemberRank(player, Config.instance.guildRanks[char.challenge.toString()]);
+				}
+			}, 1000);
+		}
 	}
 
 	private onPlayerLogin(event: PlayerEvents, player: Player) {
@@ -876,39 +941,41 @@ class ChallengeModes {
 				}
 				return false;
 			}
-			if (player && player.IsInGuild() && ["guild"].includes(cmd) && ["ban"].includes(args[0]?.toLowerCase())) {
+			if (player && player.IsInGuild() && ["g", "guild"].includes(cmd) && ["ban"].includes(args[0]?.toLowerCase())) {
+				const guild = player.GetGuild();
+				if (!Config.instance.guildNames.includes(guild.GetName()) || !([0, 1].includes(player.GetGuildRank()))) {
+					return true;
+				}
+
 				const name = args[1];
 				if (name == null || name == "") {
 					chatHandler.SendSysMessage("Usage: .challenge guild ban Playername");
 					return false;
 				}
 
-				const guild = player.GetGuild();
-				if (guild.GetName() === Config.instance.guildName && [0, 1].includes(player.GetGuildRank())) {
-					const target = GetPlayerByName(name);
-					if (target) {
-						if (target.IsInGuild() && target.GetGuild().GetId() === guild.GetId()) {
-							if ([0, 1].includes(target.GetGuildRank())) {
-								chatHandler.SendSysMessage(`Cannot ban ${this.getColoredName(target)} from the guild.`);
-								return false;
-							}
-							guild.DeleteMember(target, false);
+				const target = GetPlayerByName(name);
+				if (target) {
+					if (target.IsInGuild() && target.GetGuild().GetId() === guild.GetId()) {
+						if ([0, 1].includes(target.GetGuildRank())) {
+							chatHandler.SendSysMessage(`Cannot ban ${this.getColoredName(target)} from the guild.`);
+							return false;
 						}
-
-						const ban = new GuildBan(target.GetAccountId());
-						ban.save();
-						this.guildBans.add(ban.account);
-
-						chatHandler.SendSysMessage(`${this.getColoredName(target)}'s account has been banned from the guild.`);
-					} else {
-						chatHandler.SendSysMessage(`Player ${name} does not exist or is offline.`);
+						guild.DeleteMember(target, false);
 					}
-					return false;
+
+					const ban = new GuildBan(guild.GetId(), target.GetAccountId());
+					ban.save();
+					this.guildBans.push(ban);
+
+					chatHandler.SendSysMessage(`${this.getColoredName(target)}'s account has been banned from the guild.`);
+				} else {
+					chatHandler.SendSysMessage(`Player ${name} does not exist or is offline.`);
 				}
+				return false;
 			}
-			if (player && ["guild"].includes(cmd)) {
+			if (player && ["g", "guild", "guilds"].includes(cmd)) {
 				if (!this.isPlayerEnlisted(player)) {
-					chatHandler.SendSysMessage("You need to be enlisted for Challenge Modes to join the guild.");
+					chatHandler.SendSysMessage("You need to be enlisted for Challenge Modes to join a Challenge guild.");
 					return false;
 				}
 
@@ -917,22 +984,14 @@ class ChallengeModes {
 					return false;
 				}
 
-				if (this.guildBans.has(player.GetAccountId())) {
-					chatHandler.SendSysMessage("You are banned from this guild.");
-					return false;
-				}
-
-				RunCommand(`guild invite ${player.GetName()} "${Config.instance.guildName}"`);
-
-				if (Config.instance.guildRanks && Config.instance.guildRanks[char.challenge.toString()] !== undefined) {
-					CreateLuaEvent(() => {
-						const player = GetPlayerByGUID(char.guid);
-						if (player) {
-							const guild = player.GetGuild();
-							guild?.SetMemberRank(player, Config.instance.guildRanks[char.challenge.toString()]);
-						}
-					}, 1000);
-				}
+				const guilds = Config.instance.guildNames.map(name => {
+					const guildId = GetGuildByName(name)?.GetId();
+					return {
+						name,
+						count: (guildId in this.guildCounts) ? this.guildCounts[guildId] : 0,
+					};
+				});
+				AIO.Handle(player, Config.instance.channelName, "OpenGuildsUI", guilds);
 				return false;
 			}
 
@@ -1013,7 +1072,7 @@ class ChallengeModes {
 			// Update guild rank
 			if (player.IsInGuild()) {
 				const guild = player.GetGuild();
-				if (guild.GetName() === Config.instance.guildName) {
+				if (Config.instance.guildNames.includes(guild.GetName())) {
 					guild.SetMemberRank(player, Config.instance.guildRanks[char.challenge.toString()]);
 				}
 			}
