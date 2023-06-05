@@ -414,7 +414,7 @@ class ChallengeModes {
 
 			player.UpdatePlayerSetting(this.settingsWeekendXpSource, this.settingsWeekendXpDisable, 1);
 
-			if (char.level < player.GetLevel()) {
+			if ((char.level ?? 0) < player.GetLevel()) {
 				// Refresh in case of desync, forces rewards to be sent if a character
 				// dinged to max level while the script was disabled
 				this.onPlayerChangeLevel(null, player, char.level);
