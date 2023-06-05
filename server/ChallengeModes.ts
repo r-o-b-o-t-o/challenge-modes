@@ -82,6 +82,7 @@ class ChallengeModes {
 		this.registerBannerEvents();
 		this.registerPlayerEvents();
 		this.registerPacketEvents();
+		this.registerGuildEvents();
 
 		_G.ChallengeModes = this;
 	}
@@ -219,6 +220,10 @@ class ChallengeModes {
 		RegisterPacketEvent(this.CMSG_PET_LEARN_TALENT, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onPetLearnTalent(...args));
 		RegisterPacketEvent(this.CMSG_LEARN_PREVIEW_TALENTS_PET, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onPetLearnTalent(...args));
 		RegisterPacketEvent(this.CMSG_ACCEPT_TRADE, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onAcceptTrade(...args));
+	}
+
+	private registerGuildEvents() {
+		RegisterGuildEvent(GuildEvents.GUILD_EVENT_ON_ADD_MEMBER, (...args) => this.onGuildMemberAdded(...args));
 	}
 
 	private onAllianceBannerUse(event: GameObjectEvents, gobj: GameObject, player: Player) {
@@ -413,6 +418,12 @@ class ChallengeModes {
 				// Refresh in case of desync, forces rewards to be sent if a character
 				// dinged to max level while the script was disabled
 				this.onPlayerChangeLevel(null, player, char.level);
+			}
+		} else {
+			const guild = player.GetGuild();
+			if (player.IsInGuild() && player.GetGuildRank() > 0 && Config.instance.guildNames.includes(guild.GetName())) {
+				// Kick from Challenge guild if not enlisted
+				guild.DeleteMember(player, false);
 			}
 		}
 	}
@@ -1000,6 +1011,21 @@ class ChallengeModes {
 			if (Config.instance.logging.manualDelete) {
 				this.log(`Manually deleted (${char.formatChallenges()})`, char);
 			}
+		}
+	}
+
+	private onGuildMemberAdded(event: GuildEvents, guild: Guild, player: Player, rank: number) {
+		if (Config.instance.guildNames.includes(guild.GetName()) && player.GetGuildRank() > 0 && !this.isPlayerEnlisted(player)) {
+			const guid = player.GetGUID();
+			const guildName = guild.GetName();
+			// Kick from Challenge guild if not enlisted
+			CreateLuaEvent(() => {
+				const player = GetPlayerByGUID(guid);
+				const guild = GetGuildByName(guildName);
+				if (player) {
+					guild?.DeleteMember(player, false);
+				}
+			}, 1000);
 		}
 	}
 
