@@ -1,6 +1,8 @@
 {
 	"channelName": "ChallengeModes",
 	"maxLevel": 80,
+	"authDatabase": "acore_auth",
+	"charactersDatabase": "acore_characters",
 	"elunaDatabase": "acore_eluna",
 	"announcePermanentDeaths": true,
 	"announcePermanentDeathsMinLevel": 1,
@@ -22,7 +24,7 @@
 	},
 	"broadcasts": [],
 	"broadcastFrequency": 3600,
-	"guildName": "",
+	"guildNames": [],
 	"guildRanks": {},
 	"rewards": {
 		"1": {

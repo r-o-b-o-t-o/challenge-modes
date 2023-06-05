@@ -5,6 +5,8 @@ export default class Config {
 
 	public channelName: string;
 	public maxLevel: number;
+	public authDatabase: string;
+	public charactersDatabase: string;
 	public elunaDatabase: string;
 	public announcePermanentDeaths: boolean;
 	public announcePermanentDeathsMinLevel: number;
@@ -28,7 +30,7 @@ export default class Config {
 	};
 	public broadcasts: string[];
 	public broadcastFrequency: number;
-	public guildName: string;
+	public guildNames: string[];
 	public guildRanks: { [key: string]: number };
 
 	public static read(): void {

@@ -16,6 +16,7 @@ CREATE TABLE `challenge_modes_character` (
 ALTER TABLE `challenge_modes_character` ADD PRIMARY KEY (`guid`);
 
 CREATE TABLE `challenge_modes_guild_ban` (
+	`guild` int UNSIGNED NOT NULL,
 	`account` int UNSIGNED NOT NULL
 );
-ALTER TABLE `challenge_modes_guild_ban` ADD PRIMARY KEY (`account`);
+ALTER TABLE `challenge_modes_guild_ban` ADD PRIMARY KEY (`guild`, `account`);

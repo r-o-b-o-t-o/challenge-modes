@@ -156,7 +156,11 @@ locales["enUS"] = {
 	Err_Money = "You have money in your inventory.\nGet rid of it or create a fresh character to start the challenge.",
 	Err_Mail = "You have pending mails.\nCreate a fresh character to start the challenge.",
 	Err_Deaths = "This character has died before...\nCreate a fresh character to start the challenge.",
-	Err_Range = "You are too far away."
+	Err_Range = "You are too far away.",
+	Guild_Title = "Select a Challenge Guild",
+	Guild_Disclaimer = "Challenge Guilds are run by the community and are not managed by the ChromieCraft staff.\n\nGuild staff is required to handle Challenge Guilds in the spirit of the rules of ChromieCraft. If the staff does not follow these rules, please report it in a ticket on the ChromieCraft Discord server.",
+	Guild_Count = "{1} active accounts",
+	Guild_Join = "Join"
 }
 locales["enGB"] = locales["enUS"]
 locales["frFR"] = {
@@ -208,7 +212,11 @@ locales["frFR"] = {
 	Err_Money = "Vous avez de l'argent dans votre inventaire.\nDébarrassez-vous en ou créez un nouveau personnage pour commencer le défi.",
 	Err_Mail = "Vous avez des courriers en attente.\nCréez un nouveau personnage pour commencer le défi.",
 	Err_Deaths = "Ce personnage a déjà décédé...\nCréez un nouveau personnage pour commencer le défi.",
-	Err_Range = "Vous êtes trop loin."
+	Err_Range = "Vous êtes trop loin.",
+	Guild_Title = "Choisissez une Guilde de Défis",
+	Guild_Disclaimer = "Les guildes de défis sont gérées par la communauté et ne sont pas administrées par le personnel de ChromieCraft.\n\nLes officiers de ces guildes sont tenus de les gérer suivant des règles dans l'esprit de celles de ChromieCraft. Si cela n'est pas respecté, veuillez le signaler dans un ticket sur le serveur Discord ChromieCraft.",
+	Guild_Count = "{1} comptes actifs",
+	Guild_Join = "Rejoindre"
 }
 locales["deDE"] = {
 	Main_Title = "Ihr könnt zusätzliche Herausforderungen für Eure Abenteuer wählen",
@@ -1117,6 +1125,96 @@ challengeModes.completedWindow.closeButton:SetScript("OnClick", function()
 	challengeModes.completedWindow:Hide()
 end)
 
+
+
+-- Guild selection window
+challengeModes.guildsWindow = CreateFrame("Frame", "ChallengeModesGuildsWindow", UIParent, "UIPanelDialogTemplate")
+challengeModes.guildsWindow:SetSize(750 * scaleX, 500 * scaleY)
+challengeModes.guildsWindow:EnableMouse(true)
+challengeModes.guildsWindow:SetPoint("CENTER", 0, 0)
+challengeModes.guildsWindow.rowHeight = 40
+challengeModes.guildsWindow.scrollY = 0
+challengeModes.guildsWindow.rows = {}
+challengeModes.guildsWindow:Hide()
+_G["ChallengeModes.guildsWindow"] = challengeModes.guildsWindow -- https://wowpedia.fandom.com/wiki/Make_frames_closable_with_the_Escape_key
+tinsert(UISpecialFrames, challengeModes.guildsWindow:GetName())
+
+challengeModes.guildsWindow.title = challengeModes.guildsWindow:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+challengeModes.guildsWindow.title:SetPoint("TOP", 0, -9)
+challengeModes.guildsWindow.title:SetText(L("Guild_Title"))
+
+challengeModes.guildsWindow.text = challengeModes.guildsWindow:CreateFontString()
+challengeModes.guildsWindow.text:SetPoint("TOP", 0, -42)
+challengeModes.guildsWindow.text:SetFont("Fonts/FRIZQT__.TTF", 16)
+challengeModes.guildsWindow.text:SetText(L("Guild_Disclaimer"))
+challengeModes.guildsWindow.text:SetWidth(challengeModes.guildsWindow:GetWidth() * 0.9)
+
+-- Scrollframe
+challengeModes.guildsWindow.scrollParent = CreateFrame("Frame", nil, challengeModes.guildsWindow)
+challengeModes.guildsWindow.scrollParent:SetSize(challengeModes.guildsWindow:GetWidth() * 0.9, 300 * scaleY)
+challengeModes.guildsWindow.scrollParent:SetPoint("BOTTOM", 0, 20)
+challengeModes.guildsWindow.scrollParent:SetBackdrop({
+	bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+	edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+	tile = true,
+	tileSize = 8,
+	edgeSize = 8,
+	insets = { left = 1, right = 1, top = 1, bottom = 1 }
+})
+challengeModes.guildsWindow.scrollParent:SetBackdropColor(0.0, 0.0, 0.0, 1.0)
+challengeModes.guildsWindow.scrollParent:SetBackdropBorderColor(0.5, 0.5, 0.5)
+
+challengeModes.guildsWindow.scroll = CreateFrame("ScrollFrame", "ChallengeModesGuildsScrollFrame", challengeModes.guildsWindow.scrollParent, "UIPanelScrollFrameTemplate")
+scrollName = challengeModes.guildsWindow.scroll:GetName()
+challengeModes.guildsWindow.scrollbar = _G[scrollName .. "ScrollBar"]
+challengeModes.guildsWindow.scrollupbutton = _G[scrollName .. "ScrollBarScrollUpButton"]
+challengeModes.guildsWindow.scrolldownbutton = _G[scrollName .. "ScrollBarScrollDownButton"]
+challengeModes.guildsWindow.scroll:SetSize(challengeModes.guildsWindow.scrollParent:GetWidth() - 50 * scaleX, challengeModes.guildsWindow.scrollParent:GetHeight() - 20 * scaleY)
+challengeModes.guildsWindow.scroll:SetPoint("TOPLEFT", 10, -10)
+
+challengeModes.guildsWindow.container = CreateFrame("Frame", "ChallengeModesGuildsGuilds", challengeModes.guildsWindow.scroll)
+challengeModes.guildsWindow.container:SetWidth(challengeModes.guildsWindow.scroll:GetWidth())
+challengeModes.guildsWindow.container:SetHeight(0)
+challengeModes.guildsWindow.container:SetPoint("TOP")
+challengeModes.guildsWindow.scroll:SetScrollChild(challengeModes.guildsWindow.container)
+
+local function CreateGuildRow()
+	local row = CreateFrame("Frame", nil, challengeModes.guildsWindow.container)
+	row:SetPoint("TOP", 0, -challengeModes.guildsWindow.scrollY)
+	row:SetSize(challengeModes.guildsWindow.container:GetWidth(), challengeModes.guildsWindow.rowHeight)
+
+	row.txtName = row:CreateFontString()
+	row.txtName:SetPoint("LEFT", 0, 0)
+	row.txtName:SetFont("Fonts/FRIZQT__.TTF", 16)
+	row.txtName:SetWidth(challengeModes.guildsWindow.scroll:GetWidth() - 90 - 10 - 100 - 10)
+	row.txtName:SetHeight(challengeModes.guildsWindow.rowHeight)
+
+	row.txtCount = row:CreateFontString()
+	row.txtCount:SetPoint("RIGHT", -100 - 10, 0)
+	row.txtCount:SetFont("Fonts/FRIZQT__.TTF", 12)
+	row.txtCount:SetWidth(90)
+	row.txtCount:SetHeight(challengeModes.guildsWindow.rowHeight)
+
+	row.btnJoin = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+	row.btnJoin:SetSize(100, 32)
+	row.btnJoin:SetPoint("RIGHT", 0, 0)
+	row.btnJoin:EnableMouse(true)
+	local btnText = row.btnJoin:CreateFontString()
+	btnText:SetFont("Fonts/MORPHEUS.TTF", 18, "OUTLINE")
+	btnText:SetShadowOffset(1, -1)
+	row.btnJoin:SetFontString(btnText)
+	row.btnJoin:SetText(L("Guild_Join"))
+
+	row.btnJoin:SetScript("OnClick", function()
+		challengeModes.guildsWindow:Hide()
+		AIO.Handle(channelName, "joinGuild", row.txtName:GetText())
+	end)
+
+	challengeModes.guildsWindow.scrollY = challengeModes.guildsWindow.scrollY + challengeModes.guildsWindow.rowHeight
+	return row
+end
+
+
 function RequestHoFData()
 	local challenge = 0
 	if challengeModes.hofWindow.cbHardcore:GetChecked() then challenge = challenge + 1 end
@@ -1346,4 +1444,25 @@ function Handlers.OpenCompletedUI(player, challenges, playedTime, rank)
 	local challengesStr = FormatChallengesArray(challenges, 18)
 	challengeModes.completedWindow.text:SetText(L("Completed_Text", UnitName("player"), playedTime, challengesStr, rank))
 	challengeModes.completedWindow:Show()
+end
+
+function Handlers.OpenGuildsUI(player, guilds)
+	challengeModes.guildsWindow.scrollY = 0
+	for i = 1, #challengeModes.guildsWindow.rows do
+		challengeModes.guildsWindow.rows[i]:Hide()
+	end
+
+	for i, guild in pairs(guilds) do
+		local row = challengeModes.guildsWindow.rows[i]
+		if row == nil then
+			row = CreateGuildRow()
+			challengeModes.guildsWindow.rows[i] = row
+		end
+		row.txtName:SetText(guild.name)
+		row.txtCount:SetText(L("Guild_Count", guild.count))
+		row:Show()
+	end
+
+	challengeModes.guildsWindow.container:SetHeight(#guilds * challengeModes.guildsWindow.rowHeight)
+	challengeModes.guildsWindow:Show()
 end
