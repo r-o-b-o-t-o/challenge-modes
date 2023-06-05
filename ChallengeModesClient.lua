@@ -158,7 +158,7 @@ locales["enUS"] = {
 	Err_Deaths = "This character has died before...\nCreate a fresh character to start the challenge.",
 	Err_Range = "You are too far away.",
 	Guild_Title = "Select a Challenge Guild",
-	Guild_Disclaimer = "Challenge Guilds are run by the community and are not managed by the ChromieCraft staff.\n\nThey are however subject to the same chat rules as /world chat. Please report any infringement in a ticket on the ChromieCraft Discord server.",
+	Guild_Disclaimer = "Challenge Guilds are run by the community and are not managed by the ChromieCraft staff.\n\nGuild staff is required to handle Challenge Guilds in the spirit of the rules of ChromieCraft. If the staff does not follow these rules, please report it in a ticket on the ChromieCraft Discord server.",
 	Guild_Count = "{1} active accounts",
 	Guild_Join = "Join"
 }
@@ -214,7 +214,7 @@ locales["frFR"] = {
 	Err_Deaths = "Ce personnage a déjà décédé...\nCréez un nouveau personnage pour commencer le défi.",
 	Err_Range = "Vous êtes trop loin.",
 	Guild_Title = "Choisissez une Guilde de Défis",
-	Guild_Disclaimer = "Les guildes de défis sont gérées par la communauté et ne sont pas administrées par le personnel de ChromieCraft.\n\nElles sont cependant soumises aux mêmes règles de chat que le canal /world. Veuillez signaler toute infraction dans un ticket sur le serveur Discord ChromieCraft.",
+	Guild_Disclaimer = "Les guildes de défis sont gérées par la communauté et ne sont pas administrées par le personnel de ChromieCraft.\n\nLes officiers de ces guildes sont tenus de les gérer suivant des règles dans l'esprit de celles de ChromieCraft. Si cela n'est pas respecté, veuillez le signaler dans un ticket sur le serveur Discord ChromieCraft.",
 	Guild_Count = "{1} comptes actifs",
 	Guild_Join = "Rejoindre"
 }
