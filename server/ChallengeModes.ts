@@ -364,6 +364,9 @@ class ChallengeModes {
 		if (!this.isPlayerEnlisted(player)) {
 			return;
 		}
+		if (player.IsInGuild()) {
+			return;
+		}
 
 		if (!Config.instance.guildNames.includes(guildName)) {
 			return;
