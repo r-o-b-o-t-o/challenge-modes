@@ -382,18 +382,8 @@ class ChallengeModes {
 			return;
 		}
 
-		RunCommand(`guild invite ${player.GetName()} "${guildName}"`);
-
 		const char = this.getCharacter(player);
-		if (Config.instance.guildRanks && Config.instance.guildRanks[char.challenge.toString()] !== undefined) {
-			CreateLuaEvent(() => {
-				const player = GetPlayerByGUID(char.guid);
-				if (player) {
-					const guild = player.GetGuild();
-					guild?.SetMemberRank(player, Config.instance.guildRanks[char.challenge.toString()]);
-				}
-			}, 1000);
-		}
+		guild.AddMember(player, Config.instance.guildRanks[char.challenge.toString()]);
 	}
 
 	private onPlayerLogin(event: PlayerEvents, player: Player) {
