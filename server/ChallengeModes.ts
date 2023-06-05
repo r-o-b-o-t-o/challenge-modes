@@ -994,7 +994,7 @@ class ChallengeModes {
 						name,
 						count: (guildId in this.guildCounts) ? this.guildCounts[guildId] : 0,
 					};
-				});
+				}).sort((a, b) => b.count - a.count);
 				AIO.Handle(player, Config.instance.channelName, "OpenGuildsUI", guilds);
 				return false;
 			}
