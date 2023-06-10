@@ -1,12 +1,13 @@
 import Utils from "./Utils";
 import Areas from "./Areas";
 import Config from "./Config";
-import GuidSet from "./GuidSet";
 import PlayerMap from "./PlayerMap";
 import Database from "./db/Database";
 import GuildBan from "./db/GuildBan";
 import Character from "./db/Character";
 import HallOfFame from "./db/HallOfFame";
+import AccountData from "./db/AccountData";
+import UnlockedClass from "./db/UnlockedClass";
 import ChallengeGameObject from "./ChallengeGameObject";
 import { Date, dateToTimestamp, timestampToDate } from "./date";
 import { allChallengeModes, EChallengeMode } from "./EChallengeMode";
@@ -51,6 +52,7 @@ class ChallengeModes {
 	private guildBans: GuildBan[];
 	private guildCounts: { [key: number]: number };
 	private mobTaggingCounter: PlayerMap<{ value: number; taggers: string[]; cancelId?: number; }>;
+	private storeBusy: PlayerMap<boolean>;
 	private shrineBuff: number;
 	private broadcastIdx: number;
 
@@ -64,6 +66,8 @@ class ChallengeModes {
 			/** @noSelf **/ notifyInstallAddon: (...args: [Player, boolean]) => Utils.notifyInstallAddon(...args),
 			/** @noSelf **/ hallOfFameData: (...args: [Player, number, boolean, boolean, boolean, boolean, boolean, number[], number]) => this.hallOfFameData(...args),
 			/** @noself **/ joinGuild: (...args: [Player, string]) => this.joinGuild(...args),
+			/** @noself **/ rewardsData: (...args: [Player]) => this.rewardsData(...args),
+			/** @noself **/ rewardsBuy: (...args: [Player, number]) => this.rewardsBuy(...args),
 		});
 
 		this.pickRandomShrineBuff(true);
@@ -76,6 +80,7 @@ class ChallengeModes {
 		this.bannerGobj = new ChallengeGameObject(15, "CloseBannerUI");
 		this.hallOfFameGobj = new ChallengeGameObject(15, "CloseHallOfFameUI");
 		this.mobTaggingCounter = new PlayerMap();
+		this.storeBusy = new PlayerMap();
 		this.guildCounts = {};
 		this.loadCharacters();
 		this.loadGuildBans();
@@ -391,6 +396,89 @@ class ChallengeModes {
 		guild.AddMember(player, Config.instance.guildRanks[char.challenge.toString()]);
 	}
 
+	private rewardsData(player: Player) {
+		const accId = player.GetAccountId();
+		const guid = player.GetGUID();
+
+		UnlockedClass.get(accId, (unlockedClasses: number[]) => {
+			AccountData.get(accId, (accountData: AccountData) => {
+				const player = GetPlayerByGUID(guid);
+				if (!player) {
+					return;
+				}
+
+				AIO.Handle(player, Config.instance.channelName, "RewardsData", Config.instance.rewardsStore, unlockedClasses, accountData?.tokens ?? 0);
+			});
+		});
+	}
+
+	private rewardsBuy(player: Player, itemId: number) {
+		if (this.storeBusy.has(player)) {
+			// Prevent multiple purchases at the same time
+			return;
+		}
+
+		this.storeBusy.set(player, true);
+
+		const accId = player.GetAccountId();
+		const guid = player.GetGUID();
+
+		if (!Object.values(Config.instance.rewardsStore.items).some(items => items.includes(itemId))) {
+			// Cancel if the item is not in the store
+			return;
+		}
+		const requiredClasses = Config.instance.rewardsStore.classRestrictions[itemId.toString()];
+		if (!requiredClasses) {
+			// Cancel if class requirements are missing from the config
+			return;
+		}
+		const cost = Config.instance.rewardsStore.costs[itemId.toString()];
+		if (cost === undefined) {
+			// Cancel if the cost is missing from the config
+			return;
+		}
+
+		UnlockedClass.get(accId, (unlockedClasses: number[]) => {
+			AccountData.get(accId, (accountData: AccountData) => {
+				if (!accountData) {
+					accountData = new AccountData(accId, 0);
+				}
+
+				if (accountData.tokens < cost) {
+					// Not enough tokens
+					return;
+				}
+
+				if (!unlockedClasses.some(classId => requiredClasses.includes(classId))) {
+					// Missing class requirement
+					return;
+				}
+
+				const player = GetPlayerByGUID(guid);
+				if (!player) {
+					return;
+				}
+
+				if (Config.instance.logging.rewardsStore) {
+					this.log(`Buying reward ${itemId}`, player);
+				}
+
+				accountData.tokens -= cost;
+				accountData.save(() => {
+					const player = GetPlayerByGUID(guid);
+
+					SendMail("Challenge Reward", "", tonumber(tostring(guid)), Config.instance.rewardsSender ?? 0, MailStationery.MAIL_STATIONERY_GM, 0, 0, 0, itemId, 1);
+					this.log(`Sent store reward ${itemId}`, player);
+
+					if (player) {
+						AIO.Handle(player, Config.instance.channelName, "RewardsDataChanged");
+					}
+					this.storeBusy.delete(guid);
+				});
+			});
+		});
+	}
+
 	private onPlayerLogin(event: PlayerEvents, player: Player) {
 		if (this.isPlayerEnlisted(player)) {
 			AIO.Handle(player, Config.instance.channelName, "CheckAddonVersion", this.addonVersion);
@@ -641,6 +729,46 @@ class ChallengeModes {
 		this.sendRewards(char);
 		this.openCompletedUI(char);
 		this.removeMarkerAuras(char);
+
+		if (char.isHardcore() && char.isIronman() && char.isBloodthirsty()) {
+			AccountData.get(char.account, (accountData) => {
+				if (!accountData) {
+					accountData = new AccountData(char.account, 0);
+				}
+
+				const tokens = 3;
+				accountData.tokens += tokens;
+				accountData.save(() => {
+					if (Config.instance.logging.rewards) {
+						this.log(`Gained ${tokens} tokens`, char);
+					}
+
+					const player = GetPlayerByGUID(char.guid);
+					if (player) {
+						AIO.Handle(player, Config.instance.channelName, "RewardsTokensGained", tokens);
+						AIO.Handle(player, Config.instance.channelName, "RewardsDataChanged");
+					}
+				});
+			});
+
+			UnlockedClass.get(char.account, (classes) => {
+				if (classes.includes(char.class)) {
+					return;
+				}
+				const unlock = new UnlockedClass(char.account, char.class);
+				unlock.save(() => {
+					if (Config.instance.logging.rewards) {
+						this.log(`Unlocked class rewards for class id ${char.class}`, char);
+					}
+
+					const player = GetPlayerByGUID(char.guid);
+					if (player) {
+						AIO.Handle(player, Config.instance.channelName, "RewardsClassUnlocked");
+						AIO.Handle(player, Config.instance.channelName, "RewardsDataChanged");
+					}
+				});
+			});
+		}
 	}
 
 	private openCompletedUI(char: Character) {
@@ -970,14 +1098,20 @@ class ChallengeModes {
 						guild.DeleteMember(target, false);
 					}
 
-					const ban = new GuildBan(guild.GetId(), target.GetAccountId());
-					ban.save();
-					this.guildBans.push(ban);
+					if (this.guildBans.findIndex(gb => gb.account === target.GetAccountId() && gb.guild === guild.GetId()) === -1) {
+						const ban = new GuildBan(guild.GetId(), target.GetAccountId());
+						ban.save();
+						this.guildBans.push(ban);
+					}
 
 					chatHandler.SendSysMessage(`${this.getColoredName(target)}'s account has been banned from the guild.`);
 				} else {
 					chatHandler.SendSysMessage(`Player ${name} does not exist or is offline.`);
 				}
+				return false;
+			}
+			if (player && ["reward", "rewards", "store", "shop"].includes(cmd)) {
+				AIO.Handle(player, Config.instance.channelName, "OpenRewardsUI");
 				return false;
 			}
 			if (player && ["g", "guild", "guilds"].includes(cmd)) {

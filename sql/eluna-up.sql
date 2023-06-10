@@ -20,3 +20,15 @@ CREATE TABLE `challenge_modes_guild_ban` (
 	`account` int UNSIGNED NOT NULL
 );
 ALTER TABLE `challenge_modes_guild_ban` ADD PRIMARY KEY (`guild`, `account`);
+
+CREATE TABLE `challenge_modes_account_data` (
+	`account` INT UNSIGNED NOT NULL,
+	`tokens` INT UNSIGNED NOT NULL DEFAULT 0
+);
+ALTER TABLE `challenge_modes_account_data` ADD PRIMARY KEY (`account`);
+
+CREATE TABLE `challenge_modes_rewards_unlocked_class` (
+	`account` INT UNSIGNED NOT NULL,
+	`class` INT UNSIGNED NOT NULL
+);
+ALTER TABLE `challenge_modes_rewards_unlocked_class` ADD PRIMARY KEY (`account`, `class`);

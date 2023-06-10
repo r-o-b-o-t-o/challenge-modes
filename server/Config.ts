@@ -17,6 +17,11 @@ export default class Config {
 	public shrineBuffs: number[];
 	public shrineBuffChangeTime: number;
 	public rewards: { [key: string]: { [key: string]: number[] } };
+	public rewardsStore: {
+		items: { [key: string]: number[] };
+		classRestrictions: { [key: string]: number[] };
+		costs: { [key: string]: number };
+	};
 	public rewardsSender: number | null;
 	public logging: {
 		directory: string;
@@ -27,6 +32,7 @@ export default class Config {
 		rewards: boolean;
 		mobTagging: boolean | number;
 		manualDelete: boolean;
+		rewardsStore: boolean;
 	};
 	public broadcasts: string[];
 	public broadcastFrequency: number;

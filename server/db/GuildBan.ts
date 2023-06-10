@@ -7,7 +7,7 @@ export default class GuildBan {
 
 	public constructor(guild: number, account: number) {
 		this.guild = guild;
-		this.account = tonumber(tostring(account)); // id can be userdata, force convert to number
+		this.account = account;
 	}
 
 	public save(): void {

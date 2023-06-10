@@ -80,6 +80,7 @@ local neutralAtlas = {
 	WideScroll = { 0.2509765625, 0.75390625, 0.1484375, 0.576171875 },
 }
 
+local classIds = { 1, 2, 3, 4, 5, 7, 8, 9, 11 }
 local classNames = {}
 classNames[1] = "WARRIOR"
 classNames[2] = "PALADIN"
@@ -160,7 +161,31 @@ locales["enUS"] = {
 	Guild_Title = "Select a Challenge Guild",
 	Guild_Disclaimer = "Challenge Guilds are run by the community and are not managed by the ChromieCraft staff.\n\nGuild staff is required to handle Challenge Guilds in the spirit of the rules of ChromieCraft. If the staff does not follow these rules, please report it in a ticket on the ChromieCraft Discord server.",
 	Guild_Count = "{1} active accounts",
-	Guild_Join = "Join"
+	Guild_Join = "Join",
+	Rewards_Title = "Challenge Rewards",
+	Rewards_Tokens = "Challenge Tokens",
+	Rewards_TokensDesc = "Account Bound\nEarn Challenge Tokens by reaching the maximum level with a Hardcore + Ironman + Bloodthirsty character.",
+	Rewards_TokensCount = "Challenge Tokens: {1}",
+	Rewards_Unlocked = "{2}{1}|CFF00AF00 rewards unlocked!",
+	Rewards_Locked = "{2}{1}|CFFCD0000 rewards locked.\nReach the maximum level with a Hardcore + Ironman + Bloodthirsty {2}{1}|CFFCD0000 to unlock.",
+	Rewards_Sword = "Swords",
+	Rewards_Sword2H = "Two-Handed Swords",
+	Rewards_Axe = "Axes",
+	Rewards_Axe2H = "Two-Handed Axes",
+	Rewards_Mace = "Maces",
+	Rewards_Mace2H = "Two-Handed Maces",
+	Rewards_Dagger = "Daggers",
+	Rewards_Polearm = "Polearms",
+	Rewards_Staff = "Staves",
+	Rewards_Ranged = "Ranged",
+	Rewards_OffHand = "Off-Hands",
+	Rewards_Buy = "Buy",
+	Rewards_ClassUnlocked = "{2}{1}|CFFFFFFFF Challenge rewards unlocked!",
+	Rewards_TokensGained = "Received {1} Challenge Tokens! Type |CFF6B9EFF.challenge rewards|CFFFFFFFF to browse the rewards.",
+	Rewards_ConfirmPurchase = "Confirm Purchase?",
+	Rewards_Disclaimer1 = "Soulbound to the current character",
+	Rewards_Disclaimer2 = "Will be sent by mail",
+	Rewards_Disclaimer3 = "Non-refundable!"
 }
 locales["enGB"] = locales["enUS"]
 locales["frFR"] = {
@@ -350,6 +375,22 @@ local function TestTexture(textureName)
 	return ret == 1
 end
 
+local function SetDesaturation(texture, desaturation)
+	local shaderSupported = texture:SetDesaturated(desaturation);
+	if not shaderSupported then
+		if desaturation then
+			texture:SetVertexColor(0.4, 0.4, 0.4);
+		else
+			texture:SetVertexColor(1.0, 1.0, 1.0);
+		end
+	end
+	return shaderSupported
+end
+
+local function GetClassColor(className)
+	return string.format("|cFF%2x%2x%2x", 255 * RAID_CLASS_COLORS[className]["r"], 255 * RAID_CLASS_COLORS[className]["g"], 255 * RAID_CLASS_COLORS[className]["b"])
+end
+
 local function IsPatchInstalled()
 	return TestTexture("Interface/ChallengeModes/ChallengeModes")
 end
@@ -403,14 +444,18 @@ local function FormatChallengesArray(challenges, maxLen)
 	return str
 end
 
-local function SetTooltip(frame, text, frameOwner)
+local function SetTooltip(frame, title, text, frameOwner)
 	frame:SetScript("OnEnter", function()
 		if frameOwner ~= nil then
 			GameTooltip:SetOwner(frameOwner, "ANCHOR_TOP")
 		else
 			GameTooltip:SetOwner(frame, "ANCHOR_TOP")
 		end
-		GameTooltip:SetText(text)
+		GameTooltip:ClearLines()
+		if title ~= nil then
+			GameTooltip:AddLine(title, 1, 1, 1)
+		end
+		GameTooltip:AddLine(text, 0.9411764705882353, 0.7764705882352941, 0.0117647058823529)
 		GameTooltip:Show()
 	end)
 
@@ -712,6 +757,7 @@ challengeModes.deathWindow = CreateFrame("Frame", "ChallengeModesDeathWindow", U
 challengeModes.deathWindow:SetSize(512 * scaleX, 512 * scaleY)
 challengeModes.deathWindow:EnableMouse(true)
 challengeModes.deathWindow:SetPoint("CENTER", 0, 0)
+challengeModes.deathWindow:SetFrameStrata("TOOLTIP")
 challengeModes.deathWindow:Hide()
 
 CreateTexture(512 * scaleX, 512 * scaleY, { 0.0, 1.0, 0.0, 1.0 }, "BACKGROUND", "CENTER", 0, 0, "Interface/ChallengeModes/DeathWindowBackground", challengeModes.deathWindow)
@@ -756,7 +802,7 @@ challengeModes.hofWindow.dbOffset = 0
 challengeModes.hofWindow.dbLimit = challengeModes.hofWindow.nbRows
 challengeModes.hofWindow.playerRows = {}
 
-_G["ChallengeModes.mainWindow"] = challengeModes.hofWindow -- https://wowpedia.fandom.com/wiki/Make_frames_closable_with_the_Escape_key
+_G["ChallengeModes.hofWindow"] = challengeModes.hofWindow -- https://wowpedia.fandom.com/wiki/Make_frames_closable_with_the_Escape_key
 tinsert(UISpecialFrames, challengeModes.hofWindow:GetName())
 
 challengeModes.hofWindow:SetScript("OnShow", function()
@@ -833,7 +879,7 @@ challengeModes.hofWindow.cbMyChars = CreateCheckbox("ChallengeModesHoFCbMyChars"
 challengeModes.hofWindow.cbSolo = CreateCheckbox("ChallengeModesHoFCbSolo", challengeModes.hofWindow, "TOP", -20, -184, L("HoF_Solo"))
 
 challengeModes.hofWindow.classes = {}
-for _, classId in pairs({ 1, 2, 3, 4, 5, 7, 8, 9, 11 }) do
+for _, classId in pairs(classIds) do
 	challengeModes.hofWindow.classes[classId] = true
 end
 local classIconCoords = {}
@@ -868,7 +914,7 @@ local function ClassDropDown_Menu(frame, level, menuList)
 		info.arg1 = key
 		info.checked = checked
 		info.text = LOCALIZED_CLASS_NAMES_MALE[className]
-		info.colorCode = string.format("|cff%2x%2x%2x", 255 * RAID_CLASS_COLORS[className]["r"], 255 * RAID_CLASS_COLORS[className]["g"], 255 * RAID_CLASS_COLORS[className]["b"])
+		info.colorCode = GetClassColor(className)
 		info.tCoordLeft, info.tCoordRight, info.tCoordTop, info.tCoordBottom = unpack(classIconCoords[className])
 		local iconMargin = 0.02
 		info.tCoordLeft, info.tCoordRight, info.tCoordTop, info.tCoordBottom = info.tCoordLeft + iconMargin, info.tCoordRight - iconMargin, info.tCoordTop + iconMargin, info.tCoordBottom - iconMargin
@@ -1101,6 +1147,7 @@ challengeModes.completedWindow = CreateFrame("Frame", "ChallengeModesCompletedWi
 challengeModes.completedWindow:SetSize(400 * scaleX, 550 * scaleY)
 challengeModes.completedWindow:EnableMouse(true)
 challengeModes.completedWindow:SetPoint("CENTER", 0, 0)
+challengeModes.completedWindow:SetFrameStrata("TOOLTIP")
 challengeModes.completedWindow:Hide()
 
 CreateTexture(400 * scaleX, 550 * scaleY, { 0.0, 0.78125, 0.0, 0.537109375 }, "BACKGROUND", "CENTER", 0, 0, "Interface/ChallengeModes/CompletedWindow", challengeModes.completedWindow)
@@ -1215,6 +1262,462 @@ local function CreateGuildRow()
 end
 
 
+-- Rewards store window
+challengeModes.rewardsWindow = CreateFrame("Frame", "ChallengeModesRewardsWindow", UIParent, "UIPanelDialogTemplate")
+challengeModes.rewardsWindow:SetSize(640 * scaleX, 476 * scaleY)
+challengeModes.rewardsWindow:EnableMouse(true)
+challengeModes.rewardsWindow:SetPoint("CENTER", 0, 0)
+challengeModes.rewardsWindow.rewards = {}
+challengeModes.rewardsWindow.rewardRows = {}
+challengeModes.rewardsWindow.unlockedClasses = {}
+challengeModes.rewardsWindow.tokens = 0
+challengeModes.rewardsWindow.categories = { "Sword", "Sword2H", "Axe", "Axe2H", "Mace", "Mace2H", "Dagger", "Polearm", "Staff", "Ranged", "OffHand" }
+challengeModes.rewardsWindow.categoryButtons = {}
+challengeModes.rewardsWindow.staleData = true
+challengeModes.rewardsWindow.currentCategory = nil
+challengeModes.rewardsWindow:Hide()
+_G["ChallengeModes.rewardsWindow"] = challengeModes.rewardsWindow -- https://wowpedia.fandom.com/wiki/Make_frames_closable_with_the_Escape_key
+tinsert(UISpecialFrames, challengeModes.rewardsWindow:GetName())
+
+challengeModes.rewardsWindow.title = challengeModes.rewardsWindow:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+challengeModes.rewardsWindow.title:SetPoint("TOP", 0, -9)
+challengeModes.rewardsWindow.title:SetText(L("Rewards_Title"))
+
+challengeModes.rewardsWindow.leftPane = CreateFrame("Frame", nil, challengeModes.rewardsWindow)
+challengeModes.rewardsWindow.leftPane:SetSize(floor(challengeModes.rewardsWindow:GetWidth() * 0.3) - 10, challengeModes.rewardsWindow:GetHeight() - 30 - 8)
+challengeModes.rewardsWindow.leftPane:SetPoint("TOPLEFT", 10, -30)
+
+local function QueryItemInfo(frame, item, cb)
+	if GetItemInfo(item) == nil then
+		GameTooltip:SetHyperlink("item:" .. item .. ":0:0:0:0:0:0:0") -- Queries the server for the item
+		GameTooltip:Hide()
+
+		local seconds = 3
+		frame:Show()
+		frame:SetScript("OnUpdate", function(self, dt)
+			if seconds > 0 then
+				seconds = seconds - dt
+
+				if seconds <= 0 or GetItemInfo(item) ~= nil then
+					frame:SetScript("OnUpdate", nil)
+					QueryItemInfo(frame, item, cb)
+				end
+			end
+		end)
+	else
+		cb(GetItemInfo(item))
+	end
+end
+
+local function CreateRewardsClassFrame(classId, size, parent, tooltip)
+	local className = classNames[classId]
+	local locClassName = LOCALIZED_CLASS_NAMES_MALE[className]
+	local left, right, top, bottom = unpack(classIconCoords[className])
+	local iconMargin = 0.025
+	left, right, top, bottom = left + iconMargin, right - iconMargin, top + iconMargin, bottom - iconMargin
+
+	local classFrame = CreateFrame("Frame", nil, parent)
+	classFrame:SetSize(size, size)
+	classFrame:SetBackdrop({ bgFile = "Interface/ChallengeModes/RewardsTokensBackground" })
+	classFrame:SetBackdropColor(1.0, 0.0, 0.0)
+	classFrame.classTex = CreateTexture(size, size, { left, right, top, bottom }, "ARTWORK", "CENTER", 0, 0, "Interface/WorldStateFrame/ICONS-CLASSES", classFrame)
+	classFrame.texCheck = CreateTexture(12, 12, { 0, 1, 0, 1 }, "OVERLAY", "BOTTOMRIGHT", 2, -2, "Interface/RAIDFRAME/ReadyCheck-Ready", classFrame)
+	classFrame.texCheck:Hide()
+	classFrame.texCross = CreateTexture(12, 12, { 0, 1, 0, 1 }, "OVERLAY", "BOTTOMRIGHT", 2, -2, "Interface/RAIDFRAME/ReadyCheck-NotReady", classFrame)
+	classFrame.texCross:Hide()
+
+	if tooltip then
+		classFrame:EnableMouse(true)
+
+		classFrame:SetScript("OnEnter", function()
+			GameTooltip:SetOwner(classFrame)
+			if classFrame.unlocked then
+				GameTooltip:SetText(L("Rewards_Unlocked", locClassName, GetClassColor(className)))
+			else
+				GameTooltip:SetText(L("Rewards_Locked", locClassName, GetClassColor(className)))
+			end
+			GameTooltip:Show()
+		end)
+
+		classFrame:SetScript("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+	end
+
+	classFrame.SetUnlocked = function(self, unlocked, checkTexture, crossTexture)
+		classFrame.unlocked = unlocked == true
+		SetDesaturation(classFrame.classTex, not classFrame.unlocked)
+
+		if checkTexture and classFrame.unlocked then
+			classFrame.texCheck:Show()
+		else
+			classFrame.texCheck:Hide()
+		end
+		if crossTexture and not classFrame.unlocked then
+			classFrame.texCross:Show()
+		else
+			classFrame.texCross:Hide()
+		end
+	end
+	classFrame:SetUnlocked(false)
+
+	return classFrame
+end
+
+local function ChangeRewardsWindowCategory(category)
+	challengeModes.rewardsWindow.currentCategory = category
+
+	local categoryBtn = challengeModes.rewardsWindow.categoryButtons[category]
+	for _, btn in pairs(challengeModes.rewardsWindow.categoryButtons) do
+		btn:GetFontString():SetTextColor(1, 1, 1)
+	end
+	categoryBtn:GetFontString():SetTextColor(1, 0.82, 0)
+
+	for i = 1, #challengeModes.rewardsWindow.rewardRows do
+		challengeModes.rewardsWindow.rewardRows[i]:Hide()
+	end
+
+	local itemIds = challengeModes.rewardsWindow.rewards.items[category]
+	if itemIds == nil then
+		return
+	end
+
+	for i, itemId in pairs(itemIds) do
+		local row = challengeModes.rewardsWindow.rewardRows[i]
+
+		if row == nil then
+			row = CreateFrame("Frame", nil, challengeModes.rewardsWindow.items)
+			challengeModes.rewardsWindow.rewardRows[i] = row
+
+			row:SetPoint("TOP", 0, (i - 1) * -(30 + 8) - 14)
+			row:SetSize(floor(challengeModes.rewardsWindow.items:GetWidth() * 0.925), 30)
+			row:EnableMouse(true)
+
+			row.icon = CreateTexture(row:GetHeight(), row:GetHeight(), { 0, 1, 0, 1 }, "ARTWORK", "LEFT", 0, 0, nil, row)
+
+			row.txt = row:CreateFontString()
+			row.txt:SetJustifyH("LEFT")
+			row.txt:SetFont("Fonts/FRIZQT__.TTF", 13)
+			row.txt:SetPoint("LEFT", row.icon, "RIGHT", 8, 0)
+			row.txt:SetSize(floor(0.675 * row:GetWidth()), row:GetHeight() - 8)
+
+			row.btn = CreateFrame("Button", nil, row, "GameMenuButtonTemplate")
+			row.btn:SetSize(row:GetWidth() - row.txt:GetWidth() - row.icon:GetWidth() - 8 - 8, row:GetHeight())
+			row.btn:SetPoint("LEFT", row.txt, "RIGHT", 8, 0)
+			row.btn.tex = CreateTexture(row.btn:GetHeight() - 12, row.btn:GetHeight() - 12, { 0.0625, 0.875, 0, 0.8125 }, "OVERLAY", "CENTER", 0, -1, "Interface/ChallengeModes/Buy", row.btn)
+			row.btn:SetMotionScriptsWhileDisabled(true)
+
+			row.buyTip = CreateFrame("Frame", nil, row)
+			row.buyTip:Hide()
+			row.buyTip:SetPoint("BOTTOM", row.btn, "TOP", 0, 0)
+			row.buyTip:SetWidth(240)
+			row.buyTip:SetBackdrop({
+				bgFile = "Interface/DialogFrame/UI-DialogBox-Background-Dark",
+				edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+				edgeSize = 8,
+				insets = { left = 1, right = 1, top = 1, bottom = 1 }
+			})
+			row.buyTip:SetFrameStrata("TOOLTIP")
+
+			row.buyTip.txtTokens = row.buyTip:CreateFontString()
+			row.buyTip.txtTokens:SetJustifyH("CENTER")
+			row.buyTip.txtTokens:SetFont("Fonts/FRIZQT__.TTF", 20)
+			row.buyTip.txtTokens:SetPoint("TOP", 0, -16)
+			row.buyTip.texToken = CreateTexture(34, 34, { 0, 1, 0, 1 }, "ARTWORK", nil, nil, nil, "Interface/ChallengeModes/RewardsToken", row.buyTip)
+			row.buyTip.texToken:SetPoint("CENTER", row.buyTip.txtTokens, "LEFT", -22, -1)
+
+			row.buyTip.classFrames = {}
+			row.buyTip.classesContainer = CreateFrame("Frame", nil, row.buyTip)
+			for _, classId in pairs(classIds) do
+				local classFrame = CreateRewardsClassFrame(classId, 22, row.buyTip.classesContainer, false)
+				classFrame:Hide()
+				row.buyTip.classFrames[classId] = classFrame
+			end
+
+			row.btn:SetScript("OnEnter", function()
+				row.buyTip:Show()
+			end)
+			row.btn:SetScript("OnLeave", function()
+				row.buyTip:Hide()
+			end)
+		end
+
+		row.icon:Hide()
+		row.txt:Hide()
+		row.btn:Hide()
+
+		local cost = challengeModes.rewardsWindow.rewards.costs[tostring(itemId)]
+		local canAfford = challengeModes.rewardsWindow.tokens >= cost
+		row.buyTip.txtTokens:SetText(cost)
+		if canAfford then
+			row.buyTip.txtTokens:SetTextColor(1, 1, 1)
+		else
+			row.buyTip.txtTokens:SetTextColor(0.4, 0.4, 0.4)
+		end
+		SetDesaturation(row.buyTip.texToken, not canAfford)
+
+		for _, classId in pairs(classIds) do
+			row.buyTip.classFrames[classId]:Hide()
+			row.buyTip.classFrames[classId]:SetUnlocked(false, true, true)
+		end
+		for _, classId in pairs(challengeModes.rewardsWindow.unlockedClasses) do
+			row.buyTip.classFrames[classId]:SetUnlocked(true, true, true)
+		end
+		local hasClass = false
+		local classRestrictions = challengeModes.rewardsWindow.rewards.classRestrictions[tostring(itemId)]
+		if classRestrictions ~= nil then
+			local posIdx = 0
+			local offset = 4
+			for _, classId in pairs(classRestrictions) do
+				for _, classId2 in pairs(challengeModes.rewardsWindow.unlockedClasses) do
+					if classId2 == classId then
+						hasClass = true
+					end
+				end
+
+				local classFrame = row.buyTip.classFrames[classId]
+				classFrame:SetPoint("LEFT", posIdx * (22 + offset), 0)
+				classFrame:Show()
+				posIdx = posIdx + 1
+			end
+			row.buyTip.classesContainer:SetSize((22 + offset) * posIdx - offset, 22)
+			row.buyTip.classesContainer:SetPoint("TOP", row.buyTip.txtTokens, "BOTTOM", 0, -14)
+			row.buyTip:SetHeight(84)
+		else
+			hasClass = true
+			row.buyTip:SetHeight(50)
+		end
+
+		local canBuy = canAfford and hasClass
+		if canBuy then
+			row.btn.tex:SetTexture("Interface/ChallengeModes/Buy")
+			row.btn:Enable()
+		else
+			row.btn.tex:SetTexture("Interface/ChallengeModes/BuyDisabled")
+			row.btn:Disable()
+		end
+
+		QueryItemInfo(row, itemId, function(name, link, quality, ilevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice)
+			row.txt:SetText(name)
+			row.txt:SetTextColor(GetItemQualityColor(quality))
+
+			row.icon:SetTexture(texture)
+
+			row:SetScript("OnMouseUp", function(self, button)
+				if button ~= "LeftButton" then
+					return
+				end
+
+				if IsControlKeyDown() and IsDressableItem(link) then
+					DressUpItemLink(link)
+				end
+				if IsShiftKeyDown() then
+					ChatEdit_InsertLink(link)
+				end
+			end)
+
+			row:SetScript("OnEnter", function()
+				if IsControlKeyDown() then
+					SetCursor("INSPECT_CURSOR")
+				end
+				GameTooltip:SetOwner(row)
+				GameTooltip:SetHyperlink(link)
+				GameTooltip:Show()
+				row:RegisterEvent("MODIFIER_STATE_CHANGED")
+			end)
+
+			row:SetScript("OnLeave", function()
+				SetCursor("POINT_CURSOR")
+				GameTooltip:Hide()
+				row:UnregisterEvent("MODIFIER_STATE_CHANGED")
+			end)
+
+			row:SetScript("OnEvent", function(self, event, ...)
+				if event == "MODIFIER_STATE_CHANGED" then
+					local key, state = ...
+					if key == "LSHIFT" or key == "RSHIFT" then
+						if state == 1 then
+							GameTooltip_ShowCompareItem()
+						else
+							-- Reset the tooltip without the item comparison
+							GameTooltip:Hide()
+							GameTooltip:SetOwner(row)
+							GameTooltip:SetHyperlink(link)
+							GameTooltip:Show()
+						end
+					end
+
+					if key == "LCTRL" or key == "RCTRL" then
+						if state == 1 then
+							SetCursor("INSPECT_CURSOR")
+						else
+							SetCursor("POINT_CURSOR")
+						end
+					end
+				end
+			end)
+
+			row.btn:SetScript("OnClick", function()
+				challengeModes.rewardsWindow.confirm.item:SetText(name)
+				challengeModes.rewardsWindow.confirm.item:SetTextColor(GetItemQualityColor(quality))
+				challengeModes.rewardsWindow.confirm.txtTokens:SetText(cost)
+
+				challengeModes.rewardsWindow.confirm.btnBuy:SetScript("OnClick", function()
+					challengeModes.rewardsWindow.confirm:Hide()
+					challengeModes.rewardsWindow.items:Show()
+					AIO.Handle(channelName, "rewardsBuy", itemId)
+				end)
+
+				challengeModes.rewardsWindow.items:Hide()
+				challengeModes.rewardsWindow.confirm:Show()
+			end)
+
+			row.icon:Show()
+			row.txt:Show()
+			row.btn:Show()
+			row:Show()
+		end)
+	end
+end
+
+local buttonY = 0
+for _, category in pairs(challengeModes.rewardsWindow.categories) do
+	local btn = CreateFrame("Button", nil, challengeModes.rewardsWindow.leftPane, "UIPanelButtonTemplate")
+	btn:SetSize(challengeModes.rewardsWindow.leftPane:GetWidth() - 4, 32)
+	btn:SetPoint("TOP", 0, buttonY)
+	btn:EnableMouse(true)
+	local btnText = btn:CreateFontString()
+	btnText:SetShadowOffset(1, -1)
+	btn:SetFontString(btnText)
+	btn:SetText(L("Rewards_" .. category))
+	btn:SetScript("OnClick", function()
+		if challengeModes.rewardsWindow.confirm:IsShown() then
+			return
+		end
+		ChangeRewardsWindowCategory(category)
+	end)
+
+	challengeModes.rewardsWindow.categoryButtons[category] = btn
+
+	buttonY = buttonY - btn:GetHeight() - 1
+end
+
+challengeModes.rewardsWindow.rightPane = CreateFrame("Frame", nil, challengeModes.rewardsWindow)
+challengeModes.rewardsWindow.rightPane:SetSize(floor(challengeModes.rewardsWindow:GetWidth() * 0.7) - 6, challengeModes.rewardsWindow:GetHeight() - 30 - 8)
+challengeModes.rewardsWindow.rightPane:SetPoint("TOPRIGHT", -6, -30)
+
+challengeModes.rewardsWindow.items = CreateFrame("Frame", "ChallengeModesRewardsItems", challengeModes.rewardsWindow.rightPane)
+challengeModes.rewardsWindow.items:SetPoint("TOP", 0, -6)
+challengeModes.rewardsWindow.items:SetSize(floor(challengeModes.rewardsWindow.rightPane:GetWidth() * 0.95), challengeModes.rewardsWindow.rightPane:GetHeight() - 40 - 6 - 6 - 6)
+challengeModes.rewardsWindow.items:SetBackdrop({
+	bgFile = "Interface/ChallengeModes/RewardsBackground",
+	edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+	edgeSize = 16,
+	insets = { left = 2, right = 2, top = 2, bottom = 2 }
+})
+
+challengeModes.rewardsWindow.tokenBar = CreateFrame("Frame", "ChallengeModesRewardsTokens", challengeModes.rewardsWindow.rightPane)
+challengeModes.rewardsWindow.tokenBar:SetPoint("BOTTOM", 0, 6)
+challengeModes.rewardsWindow.tokenBar:SetSize(floor(challengeModes.rewardsWindow.rightPane:GetWidth() * 0.95), 40)
+challengeModes.rewardsWindow.tokenBar:SetBackdrop({
+	bgFile = "Interface/ChallengeModes/RewardsTokensBackground",
+	edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+	edgeSize = 16,
+	insets = { left = 2, right = 2, top = 2, bottom = 2 }
+})
+challengeModes.rewardsWindow.tokenBar:SetBackdropBorderColor(0.9686274509803922, 0.7647058823529412, 0)
+challengeModes.rewardsWindow.tokenBar:EnableMouse(true)
+
+challengeModes.rewardsWindow.tokenBar.tokensContainer = CreateFrame("Frame", nil, challengeModes.rewardsWindow.tokenBar)
+challengeModes.rewardsWindow.tokenBar.tokensContainer:SetPoint("LEFT", 8, 0)
+challengeModes.rewardsWindow.tokenBar.tokensContainer:SetHeight(challengeModes.rewardsWindow.tokenBar:GetHeight())
+challengeModes.rewardsWindow.tokenBar.tokensContainer:EnableMouse(true)
+SetTooltip(challengeModes.rewardsWindow.tokenBar.tokensContainer, L("Rewards_Tokens"), L("Rewards_TokensDesc"), challengeModes.rewardsWindow.tokenBar.tokensContainer)
+
+challengeModes.rewardsWindow.tokenBar.weaponToken = CreateTexture(30, 30, { 0, 1, 0, 1 }, "ARTWORK", "LEFT", 0, 0, "Interface/ChallengeModes/RewardsToken", challengeModes.rewardsWindow.tokenBar.tokensContainer)
+challengeModes.rewardsWindow.tokenBar.weaponTokensCount = challengeModes.rewardsWindow.tokenBar:CreateFontString()
+challengeModes.rewardsWindow.tokenBar.weaponTokensCount.offset = 5
+challengeModes.rewardsWindow.tokenBar.weaponTokensCount:SetPoint("LEFT", challengeModes.rewardsWindow.tokenBar.weaponToken, "RIGHT", challengeModes.rewardsWindow.tokenBar.weaponTokensCount.offset, 1)
+challengeModes.rewardsWindow.tokenBar.weaponTokensCount:SetFont("Fonts/FRIZQT__.TTF", 14)
+
+local classX = 0
+challengeModes.rewardsWindow.tokenBar.classFrames = {}
+for i = #classIds, 1, -1 do
+	local classId = classIds[i]
+	local classFrame = CreateRewardsClassFrame(classId, 22, challengeModes.rewardsWindow.tokenBar, true)
+	challengeModes.rewardsWindow.tokenBar.classFrames[classId] = classFrame
+	classFrame:SetPoint("RIGHT", -8 - classX, 0)
+
+	classX = classX + 28
+end
+
+challengeModes.rewardsWindow.confirm = CreateFrame("Frame", "ChallengeModesRewardsItems", challengeModes.rewardsWindow.rightPane)
+challengeModes.rewardsWindow.confirm:Hide()
+challengeModes.rewardsWindow.confirm:SetPoint("TOP", 0, -6)
+challengeModes.rewardsWindow.confirm:SetSize(floor(challengeModes.rewardsWindow.rightPane:GetWidth() * 0.95), challengeModes.rewardsWindow.rightPane:GetHeight() - 40 - 6 - 6 - 6)
+challengeModes.rewardsWindow.confirm:SetBackdrop({
+	bgFile = "Interface/ChallengeModes/RewardsBackground",
+	edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+	edgeSize = 16,
+	insets = { left = 2, right = 2, top = 2, bottom = 2 }
+})
+
+challengeModes.rewardsWindow.confirm.title = challengeModes.rewardsWindow.confirm:CreateFontString()
+challengeModes.rewardsWindow.confirm.title:SetPoint("TOP", 0, -22)
+challengeModes.rewardsWindow.confirm.title:SetFont("Fonts/FRIZQT__.TTF", 18)
+challengeModes.rewardsWindow.confirm.title:SetText(L("Rewards_ConfirmPurchase"))
+challengeModes.rewardsWindow.confirm.title:SetShadowOffset(1, -1)
+
+challengeModes.rewardsWindow.confirm.item = challengeModes.rewardsWindow.confirm:CreateFontString()
+challengeModes.rewardsWindow.confirm.item:SetFont("Fonts/FRIZQT__.TTF", 18)
+challengeModes.rewardsWindow.confirm.item:SetPoint("TOP", 0, -60)
+challengeModes.rewardsWindow.confirm.item:SetSize(floor(0.7 * challengeModes.rewardsWindow.confirm:GetWidth()), 40)
+
+challengeModes.rewardsWindow.confirm.txtTokens = challengeModes.rewardsWindow.confirm:CreateFontString()
+challengeModes.rewardsWindow.confirm.txtTokens:SetFont("Fonts/FRIZQT__.TTF", 24)
+challengeModes.rewardsWindow.confirm.txtTokens:SetPoint("TOP", challengeModes.rewardsWindow.confirm.item, "BOTTOM", 0, -16)
+challengeModes.rewardsWindow.confirm.texToken = CreateTexture(48, 48, { 0, 1, 0, 1 }, "ARTWORK", nil, nil, nil, "Interface/ChallengeModes/RewardsToken", challengeModes.rewardsWindow.confirm)
+challengeModes.rewardsWindow.confirm.texToken:SetPoint("CENTER", challengeModes.rewardsWindow.confirm.txtTokens, "LEFT", -32, -1)
+
+challengeModes.rewardsWindow.confirm.txt1 = challengeModes.rewardsWindow.confirm:CreateFontString()
+challengeModes.rewardsWindow.confirm.txt1:SetFont("Fonts/FRIZQT__.TTF", 14)
+challengeModes.rewardsWindow.confirm.txt1:SetPoint("TOP", challengeModes.rewardsWindow.confirm.txtTokens, "BOTTOM", 0, -32)
+challengeModes.rewardsWindow.confirm.txt1:SetText("• " .. L("Rewards_Disclaimer1"))
+
+challengeModes.rewardsWindow.confirm.txt2 = challengeModes.rewardsWindow.confirm:CreateFontString()
+challengeModes.rewardsWindow.confirm.txt2:SetFont("Fonts/FRIZQT__.TTF", 14)
+challengeModes.rewardsWindow.confirm.txt2:SetPoint("TOP", challengeModes.rewardsWindow.confirm.txt1, "BOTTOM", 0, -6)
+challengeModes.rewardsWindow.confirm.txt2:SetText("• " .. L("Rewards_Disclaimer2"))
+
+challengeModes.rewardsWindow.confirm.txt3 = challengeModes.rewardsWindow.confirm:CreateFontString()
+challengeModes.rewardsWindow.confirm.txt3:SetFont("Fonts/FRIZQT__.TTF", 14)
+challengeModes.rewardsWindow.confirm.txt3:SetPoint("TOP", challengeModes.rewardsWindow.confirm.txt2, "BOTTOM", 0, -6)
+challengeModes.rewardsWindow.confirm.txt3:SetText("• " .. L("Rewards_Disclaimer3"))
+
+challengeModes.rewardsWindow.confirm.btnBuy = CreateFrame("Button", nil, challengeModes.rewardsWindow.confirm, "UIPanelButtonTemplate")
+challengeModes.rewardsWindow.confirm.btnBuy:SetSize(140, 40)
+challengeModes.rewardsWindow.confirm.btnBuy:SetPoint("BOTTOM", -75, 16)
+challengeModes.rewardsWindow.confirm.btnBuy.txt = challengeModes.rewardsWindow.confirm.btnBuy:CreateFontString()
+challengeModes.rewardsWindow.confirm.btnBuy.txt:SetFont("Fonts/FRIZQT__.TTF", 16)
+challengeModes.rewardsWindow.confirm.btnBuy.txt:SetShadowOffset(1, -1)
+challengeModes.rewardsWindow.confirm.btnBuy:SetFontString(challengeModes.rewardsWindow.confirm.btnBuy.txt)
+challengeModes.rewardsWindow.confirm.btnBuy:SetText(L("Rewards_Buy"))
+
+challengeModes.rewardsWindow.confirm.btnCancel = CreateFrame("Button", nil, challengeModes.rewardsWindow.confirm, "GameMenuButtonTemplate")
+challengeModes.rewardsWindow.confirm.btnCancel:SetSize(140, 40)
+challengeModes.rewardsWindow.confirm.btnCancel:SetPoint("BOTTOM", 75, 16)
+challengeModes.rewardsWindow.confirm.btnCancel.txt = challengeModes.rewardsWindow.confirm.btnCancel:CreateFontString()
+challengeModes.rewardsWindow.confirm.btnCancel.txt:SetFont("Fonts/FRIZQT__.TTF", 16)
+challengeModes.rewardsWindow.confirm.btnCancel.txt:SetShadowOffset(1, -1)
+challengeModes.rewardsWindow.confirm.btnCancel:SetFontString(challengeModes.rewardsWindow.confirm.btnCancel.txt)
+challengeModes.rewardsWindow.confirm.btnCancel:SetText(L("Confirm_Cancel"))
+challengeModes.rewardsWindow.confirm.btnCancel:SetNormalTexture("Interface/BUTTONS/UI-Panel-Button-Disabled")
+challengeModes.rewardsWindow.confirm.btnCancel:SetPushedTexture("Interface/BUTTONS/UI-Panel-Button-Disabled-Down")
+challengeModes.rewardsWindow.confirm.btnCancel:SetScript("OnClick", function()
+	challengeModes.rewardsWindow.confirm:Hide()
+	challengeModes.rewardsWindow.items:Show()
+end)
+
 function RequestHoFData()
 	local challenge = 0
 	if challengeModes.hofWindow.cbHardcore:GetChecked() then challenge = challenge + 1 end
@@ -1272,7 +1775,7 @@ function Handlers.OpenBannerUI(player, addonVersion, eligible)
 			btn:Disable()
 			btn:SetMotionScriptsWhileDisabled(true)
 
-			SetTooltip(btn, errTxt)
+			SetTooltip(btn, nil, errTxt)
 		else
 			btn:Enable()
 			btn:SetScript("OnEnter", nil)
@@ -1294,6 +1797,7 @@ function Handlers.Enlisted(player, challenge)
 	end
 
 	challengeModes.enlistSplashFrame = CreateFrame("Frame", "ChallengeModesEnlistSplash", UIParent)
+	challengeModes.enlistSplashFrame:SetFrameStrata("TOOLTIP")
 	challengeModes.enlistSplashFrame:SetSize(467 * scaleX, 141 * scaleY)
 	challengeModes.enlistSplashFrame:EnableMouse(false)
 	challengeModes.enlistSplashFrame:SetPoint("BOTTOM", 0, 150)
@@ -1465,4 +1969,52 @@ function Handlers.OpenGuildsUI(player, guilds)
 
 	challengeModes.guildsWindow.container:SetHeight(#guilds * challengeModes.guildsWindow.rowHeight)
 	challengeModes.guildsWindow:Show()
+end
+
+function Handlers.OpenRewardsUI(player)
+	if challengeModes.rewardsWindow.staleData then
+		AIO.Handle(channelName, "rewardsData")
+	else
+		challengeModes.rewardsWindow:Show()
+	end
+end
+
+function Handlers.RewardsData(player, storeData, unlockedClasses, tokens)
+	local refresh = challengeModes.rewardsWindow.staleData or next(challengeModes.rewardsWindow.rewards) == nil
+	challengeModes.rewardsWindow.staleData = false
+
+	for _, classId in pairs(unlockedClasses) do
+		local classFrame = challengeModes.rewardsWindow.tokenBar.classFrames[classId]
+		classFrame:SetUnlocked(true, true)
+	end
+	challengeModes.rewardsWindow.tokenBar.weaponTokensCount:SetText(tokens)
+	challengeModes.rewardsWindow.tokenBar.tokensContainer:SetWidth(challengeModes.rewardsWindow.tokenBar.weaponToken:GetWidth() + challengeModes.rewardsWindow.tokenBar.weaponTokensCount.offset + challengeModes.rewardsWindow.tokenBar.weaponTokensCount:GetWidth())
+
+	challengeModes.rewardsWindow.rewards = storeData
+	challengeModes.rewardsWindow.unlockedClasses = unlockedClasses
+	challengeModes.rewardsWindow.tokens = tokens
+	challengeModes.rewardsWindow:Show()
+
+	if refresh then
+		ChangeRewardsWindowCategory(challengeModes.rewardsWindow.currentCategory or challengeModes.rewardsWindow.categories[1])
+	end
+end
+
+function Handlers.RewardsDataChanged(player)
+	challengeModes.rewardsWindow.staleData = true
+	if challengeModes.rewardsWindow:IsShown() then
+		AIO.Handle(channelName, "rewardsData")
+	end
+end
+
+function Handlers.RewardsTokensGained(player, tokens)
+	local str = L("Rewards_TokensGained", tokens)
+	DEFAULT_CHAT_FRAME:AddMessage(str)
+end
+
+function Handlers.RewardsClassUnlocked(player)
+	local className = select(2, UnitClass("player"))
+	local locClassName = LOCALIZED_CLASS_NAMES_MALE[className]
+	local str = L("Rewards_ClassUnlocked", locClassName, GetClassColor(className))
+	DEFAULT_CHAT_FRAME:AddMessage(str)
 end
