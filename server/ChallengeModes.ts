@@ -1073,9 +1073,15 @@ class ChallengeModes {
 					return false;
 				}
 
-				const guid = parseInt(nameOrGuid);
-				const res = CharDBQuery(`SELECT * FROM ${Character.table()} WHERE name = \"${nameOrGuid}\" OR guid = \"${guid}\"`);
-				const rows = Database.getRowsFromQuery(res);
+				let res = CharDBQuery(`SELECT guid FROM characters WHERE UPPER(name) = UPPER(\"${nameOrGuid}\")`);
+				let rows = Database.getRowsFromQuery(res);
+				if (rows.length > 0) {
+					chatHandler.SendSysMessage(`A character with the same name already exists, cannot restore.`);
+					return false;
+				}
+
+				res = CharDBQuery(`SELECT * FROM ${Character.table()} WHERE UPPER(name) = UPPER(\"${nameOrGuid}\") OR guid = \"${nameOrGuid}\"`);
+				rows = Database.getRowsFromQuery(res);
 				const chars = rows.map(Character.createFromRow);
 				if (chars.length > 1) {
 					chatHandler.SendSysMessage("Found multiple characters with this name:\n" + chars.map(c => {
