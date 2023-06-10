@@ -883,6 +883,7 @@ class ChallengeModes {
 		if (Config.instance.announcePermanentDeaths && player.GetLevel() >= Config.instance.announcePermanentDeathsMinLevel) {
 			SendWorldMessage(`${this.getColoredName(player)} was killed by ${killer.GetName()} at level ${player.GetLevel()} in ${this.formatArea(player)} (${char.formatChallenges()} Challenge).`);
 		}
+		this.logPlayerDeath(player, `killed by creature ${killer.GetName()}`);
 		this.onPlayerDied(player);
 	}
 
@@ -904,13 +905,22 @@ class ChallengeModes {
 			}
 		}
 
+		if (killer.GetGUID() === killed.GetGUID()) {
+			this.logPlayerDeath(killed, "suicide");
+		} else {
+			this.logPlayerDeath(killed, `killed by player ${killer.GetName()}`);
+		}
+
 		this.onPlayerDied(killed);
 	}
 
-	private onPlayerDied(player: Player) {
+	private logPlayerDeath(player: Player, text: string) {
 		if (Config.instance.logging.died) {
-			this.log(`Died (.go xyz ${player.GetX()} ${player.GetY()} ${player.GetZ()} ${player.GetMapId()})`, player);
+			this.log(`Died (${text}) (.go xyz ${player.GetX()} ${player.GetY()} ${player.GetZ()} ${player.GetMapId()})`, player);
 		}
+	}
+
+	private onPlayerDied(player: Player) {
 		const char = this.getCharacter(player);
 		char.dead = true;
 		char.updateCharacterData(player);
