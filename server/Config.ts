@@ -33,6 +33,7 @@ export default class Config {
 		mobTagging: boolean | number;
 		manualDelete: boolean;
 		rewardsStore: boolean;
+		pvpState: boolean;
 	};
 	public broadcasts: string[];
 	public broadcastFrequency: number;

@@ -21,7 +21,8 @@
 		"rewards": true,
 		"mobTagging": 10,
 		"manualDelete": true,
-		"rewardsStore": true
+		"rewardsStore": true,
+		"pvpState": true
 	},
 	"broadcasts": [],
 	"broadcastFrequency": 3600,

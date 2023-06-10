@@ -29,9 +29,12 @@ class ChallengeModes {
 	private readonly CMSG_PET_LEARN_TALENT = 0x47A;
 	private readonly CMSG_LEARN_PREVIEW_TALENTS_PET = 0x4C2;
 	private readonly CMSG_ACCEPT_TRADE = 0x11A;
+	private readonly CMSG_TOGGLE_PVP = 0x253;
 	private readonly PLAYER_FIELD_VENDORBUYBACK_SLOT_1 = 472;
 	private readonly PLAYER_FIELD_BUYBACK_PRICE_1 = 1201;
 	private readonly PLAYER_FIELD_BUYBACK_TIMESTAMP_1 = 1213;
+	private readonly PLAYER_FLAGS = 150;
+	private readonly PLAYER_FLAGS_IN_PVP = 0x00000200;
 
 	private readonly settingsWeekendXpSource = "mod-double-xp-weekend";
 	private readonly settingsWeekendXpDisable = 1;
@@ -225,6 +228,7 @@ class ChallengeModes {
 		RegisterPacketEvent(this.CMSG_PET_LEARN_TALENT, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onPetLearnTalent(...args));
 		RegisterPacketEvent(this.CMSG_LEARN_PREVIEW_TALENTS_PET, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onPetLearnTalent(...args));
 		RegisterPacketEvent(this.CMSG_ACCEPT_TRADE, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onAcceptTrade(...args));
+		RegisterPacketEvent(this.CMSG_TOGGLE_PVP, PacketEvents.PACKET_EVENT_ON_PACKET_RECEIVE, (...args) => this.onTogglePvp(...args));
 	}
 
 	private registerGuildEvents() {
@@ -510,6 +514,10 @@ class ChallengeModes {
 				char.updateCharacterData(player);
 				char.save();
 			}
+
+			if (Config.instance.logging.pvpState && player.HasFlag(this.PLAYER_FLAGS, this.PLAYER_FLAGS_IN_PVP)) {
+				this.log(`Logged in with PvP enabled`, player);
+			}
 		} else {
 			const guild = player.GetGuild();
 			if (player.IsInGuild() && player.GetGuildRank() > 0 && Config.instance.guildNames.includes(guild.GetName())) {
@@ -699,6 +707,28 @@ class ChallengeModes {
 			const canTrade = a?.challenge === b?.challenge;
 			return canTrade;
 		}
+		return true;
+	}
+
+	private onTogglePvp(event: PacketEvents, packet: WorldPacket, player: Player) {
+		if (!Config.instance.logging.pvpState) {
+			return true;
+		}
+
+		let state: boolean;
+		if (tonumber(tostring(packet.GetSize())) === 1) {
+			state = packet.ReadByte() !== 0;
+		} else {
+			const oldState = player.HasFlag(this.PLAYER_FLAGS, this.PLAYER_FLAGS_IN_PVP);
+			state = !oldState;
+		}
+
+		if (state) {
+			this.log("Enabled PvP", player);
+		} else {
+			this.log("Disabled PvP", player);
+		}
+
 		return true;
 	}
 
