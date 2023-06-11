@@ -673,7 +673,7 @@ class ChallengeModes {
 	private onPlayerCanUseItem(event: PlayerEvents, player: Player, itemEntry: number): InventoryResult {
 		const character = this.getCharacter(player);
 		const itemTemplate = GetItemTemplate(itemEntry);
-		const allowedInvTypes = [18, 27, 0];
+		const allowedInvTypes = [18, 19, 27, 0]; // Bag, Tabard, Quiver, Non-equippable
 		if (character?.isIronman() && itemTemplate?.GetQuality() > 1 && !allowedInvTypes.includes(itemTemplate?.GetInventoryType() ?? -1)) {
 			// Prevent using items better than Common in Ironman mode
 			return InventoryResult.EQUIP_ERR_CANT_DO_RIGHT_NOW;
