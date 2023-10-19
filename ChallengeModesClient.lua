@@ -93,6 +93,8 @@ classNames[8] = "MAGE"
 classNames[9] = "WARLOCK"
 classNames[11] = "DRUID"
 
+local titleFont = "Fonts/MORPHEUS.TTF"
+
 local _, _, _, race = GetPlayerInfoByGUID(UnitGUID("player"))
 local atlas, faction, titleColor, textColor
 if race == "Orc" or race == "Scourge" or race == "Tauren" or race == "Troll" or race == "BloodElf" then
@@ -347,6 +349,14 @@ locales["esES"] = {
 }
 locales["esMX"] = locales["esES"]
 local locale = GetLocale()
+
+if locale == "enCN" or locale == "zhCN" then
+	titleFont = "Fonts/ZYKai_C.ttf"
+end
+if locale == "koKR" then
+	titleFont = "Fonts/K_Damage.ttf"
+end
+
 if locales[locale] == nil then
 	locale = "enUS"
 end
@@ -521,7 +531,7 @@ local function CreateMainWindowScroll(x, title, text, img, btnTextures)
 	btn:SetPoint("CENTER", x, -190)
 	btn:EnableMouse(true)
 	local btnText = btn:CreateFontString()
-	btnText:SetFont("Fonts/MORPHEUS.TTF", 18, "OUTLINE")
+	btnText:SetFont(titleFont, 18, "OUTLINE")
 	btnText:SetShadowOffset(1, -1)
 	btn:SetFontString(btnText)
 	btn:SetText(L("Main_Enlist"))
@@ -663,7 +673,7 @@ challengeModes.confirmWindow.enlistButton:SetSize(160, 40)
 challengeModes.confirmWindow.enlistButton:SetPoint("CENTER", -85, -146)
 challengeModes.confirmWindow.enlistButton:EnableMouse(true)
 challengeModes.confirmWindow.enlistButtonText = challengeModes.confirmWindow.enlistButton:CreateFontString()
-challengeModes.confirmWindow.enlistButtonText:SetFont("Fonts/MORPHEUS.TTF", 18, "OUTLINE")
+challengeModes.confirmWindow.enlistButtonText:SetFont(titleFont, 18, "OUTLINE")
 challengeModes.confirmWindow.enlistButtonText:SetShadowOffset(1, -1)
 challengeModes.confirmWindow.enlistButton:SetFontString(challengeModes.confirmWindow.enlistButtonText)
 challengeModes.confirmWindow.enlistButton:SetText(L("Main_Enlist"))
@@ -681,7 +691,7 @@ challengeModes.confirmWindow.cancelButton:SetSize(160, 40)
 challengeModes.confirmWindow.cancelButton:SetPoint("CENTER", 85, -146)
 challengeModes.confirmWindow.cancelButton:EnableMouse(true)
 challengeModes.confirmWindow.cancelButtonText = challengeModes.confirmWindow.cancelButton:CreateFontString()
-challengeModes.confirmWindow.cancelButtonText:SetFont("Fonts/MORPHEUS.TTF", 18, "OUTLINE")
+challengeModes.confirmWindow.cancelButtonText:SetFont(titleFont, 18, "OUTLINE")
 challengeModes.confirmWindow.cancelButtonText:SetShadowOffset(1, -1)
 challengeModes.confirmWindow.cancelButton:SetFontString(challengeModes.confirmWindow.cancelButtonText)
 challengeModes.confirmWindow.cancelButton:SetText(L("Confirm_Cancel"))
@@ -767,7 +777,7 @@ CreateTexture(207 * scaleX, 207 * scaleY, { 0.0, 0.80859375, 0.0, 0.80859375 }, 
 
 challengeModes.deathWindow.title = challengeModes.deathWindow:CreateFontString()
 challengeModes.deathWindow.title:SetPoint("TOP", 0, -32)
-challengeModes.deathWindow.title:SetFont("Fonts/MORPHEUS.TTF", 22)
+challengeModes.deathWindow.title:SetFont(titleFont, 22)
 challengeModes.deathWindow.title:SetText(L("Death_Title"))
 
 challengeModes.deathWindow.text = challengeModes.deathWindow:CreateFontString()
@@ -779,7 +789,7 @@ challengeModes.deathWindow.button:SetSize(140, 40)
 challengeModes.deathWindow.button:SetPoint("BOTTOM", 0, 24)
 challengeModes.deathWindow.button:EnableMouse(true)
 challengeModes.deathWindow.buttonText = challengeModes.deathWindow.button:CreateFontString()
-challengeModes.deathWindow.buttonText:SetFont("Fonts/MORPHEUS.TTF", 18, "OUTLINE")
+challengeModes.deathWindow.buttonText:SetFont(titleFont, 18, "OUTLINE")
 challengeModes.deathWindow.buttonText:SetShadowOffset(1, -1)
 challengeModes.deathWindow.button:SetFontString(challengeModes.deathWindow.buttonText)
 challengeModes.deathWindow.button:SetText(L("Death_Logout"))
@@ -1156,7 +1166,7 @@ CreateTexture(207 * scaleX, 207 * scaleY, { 0.0, 0.80859375, 0.0, 0.80859375 }, 
 
 challengeModes.completedWindow.title = challengeModes.completedWindow:CreateFontString()
 challengeModes.completedWindow.title:SetPoint("TOP", 0, -32)
-challengeModes.completedWindow.title:SetFont("Fonts/MORPHEUS.TTF", 22)
+challengeModes.completedWindow.title:SetFont(titleFont, 22)
 challengeModes.completedWindow.title:SetText(L("Completed_Title"))
 
 challengeModes.completedWindow.text = challengeModes.completedWindow:CreateFontString()
@@ -1247,7 +1257,7 @@ local function CreateGuildRow()
 	row.btnJoin:SetPoint("RIGHT", 0, 0)
 	row.btnJoin:EnableMouse(true)
 	local btnText = row.btnJoin:CreateFontString()
-	btnText:SetFont("Fonts/MORPHEUS.TTF", 18, "OUTLINE")
+	btnText:SetFont(titleFont, 18, "OUTLINE")
 	btnText:SetShadowOffset(1, -1)
 	row.btnJoin:SetFontString(btnText)
 	row.btnJoin:SetText(L("Guild_Join"))
