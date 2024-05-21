@@ -7,3 +7,7 @@ export enum EChallengeMode {
 export function allChallengeModes(): EChallengeMode[] {
 	return [EChallengeMode.Hardcore, EChallengeMode.Ironman, EChallengeMode.Bloodthirsty];
 }
+
+export function challengeFromName(name: string): EChallengeMode {
+	return allChallengeModes().find((val) => EChallengeMode[val] === name);
+}

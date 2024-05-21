@@ -10,7 +10,7 @@ import AccountData from "./db/AccountData";
 import UnlockedClass from "./db/UnlockedClass";
 import ChallengeGameObject from "./ChallengeGameObject";
 import { Date, dateToTimestamp, timestampToDate } from "./date";
-import { allChallengeModes, EChallengeMode } from "./EChallengeMode";
+import { allChallengeModes, challengeFromName, EChallengeMode } from "./EChallengeMode";
 
 const AIO = require("AIO") as Aio;
 
@@ -30,6 +30,7 @@ class ChallengeModes {
 	private readonly CMSG_LEARN_PREVIEW_TALENTS_PET = 0x4C2;
 	private readonly CMSG_ACCEPT_TRADE = 0x11A;
 	private readonly CMSG_TOGGLE_PVP = 0x253;
+	private readonly SMSG_CREATURE_QUERY_RESPONSE = 0x061;
 	private readonly PLAYER_FIELD_VENDORBUYBACK_SLOT_1 = 472;
 	private readonly PLAYER_FIELD_BUYBACK_PRICE_1 = 1201;
 	private readonly PLAYER_FIELD_BUYBACK_TIMESTAMP_1 = 1213;
@@ -58,6 +59,7 @@ class ChallengeModes {
 	private storeBusy: PlayerMap<boolean>;
 	private shrineBuff: number;
 	private broadcastIdx: number;
+	private creatureDisplayCache: (string | number)[][];
 
 	public constructor() {
 		AIO.AddHandlers(Config.instance.channelName, {
@@ -69,7 +71,8 @@ class ChallengeModes {
 			/** @noSelf **/ notifyInstallAddon: (...args: [Player, boolean]) => Utils.notifyInstallAddon(...args),
 			/** @noSelf **/ hallOfFameData: (...args: [Player, number, boolean, boolean, boolean, boolean, boolean, number[], number]) => this.hallOfFameData(...args),
 			/** @noself **/ joinGuild: (...args: [Player, string]) => this.joinGuild(...args),
-			/** @noself **/ rewardsData: (...args: [Player]) => this.rewardsData(...args),
+			/** @noself **/ challengeRewardsData: (...args: [Player, number, string]) => this.challengeRewardsData(...args),
+			/** @noself **/ tokenRewardsData: (...args: [Player]) => this.tokenRewardsData(...args),
 			/** @noself **/ rewardsBuy: (...args: [Player, number]) => this.rewardsBuy(...args),
 		});
 
@@ -87,6 +90,7 @@ class ChallengeModes {
 		this.guildCounts = {};
 		this.loadCharacters();
 		this.loadGuildBans();
+		this.loadCreatureDisplayCache();
 		this.registerBannerEvents();
 		this.registerPlayerEvents();
 		this.registerPacketEvents();
@@ -188,6 +192,50 @@ class ChallengeModes {
 		for (const ban of GuildBan.getAll()) {
 			this.guildBans.push(ban);
 		}
+	}
+
+	private loadCreatureDisplayCache() {
+		// https://github.com/Foereaper/Eluna-AIO-StoreSystem/blob/85d2c78af6183d51ba1c2d368a1840fbfb9b245c/Server/Store_System/Store_DataStruct.lua#L141
+		// Thanks, Foe!
+
+		this.creatureDisplayCache = [];
+
+		const creatures = new Set<number>(Object.values(Config.instance.itemCreatures).map((val) => typeof val === "number" ? val : val.id));
+		const idsSql = Array.from(creatures).join(", ");
+		const query = WorldDBQuery("SELECT entry, `name`, subname, IconName, type_flags, `type`, family, `rank`, KillCredit1, KillCredit2, modelId1, modelId2, modelId3, modelId4, HealthModifier, ManaModifier, RacialLeader, MovementType FROM creature_template WHERE entry IN (" + idsSql + ");");
+		if (!query) {
+			return;
+		}
+
+		do {
+			this.creatureDisplayCache.push([
+				query.GetUInt32(0),
+				query.GetString(1),
+				query.GetString(2),
+				query.GetString(3),
+				query.GetUInt32(4),
+				query.GetUInt32(5),
+				query.GetUInt32(6),
+				query.GetUInt32(7),
+				query.GetUInt32(8),
+				query.GetUInt32(9),
+				query.GetUInt32(10),
+				query.GetUInt32(11),
+				query.GetUInt32(12),
+				query.GetUInt32(13),
+				query.GetFloat(14),
+				query.GetFloat(15),
+				query.GetUInt32(16),
+				query.GetUInt32(17),
+			]);
+		} while (query.NextRow());
+	}
+
+	private getStoreRewards(classId: number, challenge: EChallengeMode) {
+		return Config.instance.rewards[classId.toString()][challenge.toString()].map((id) => ({
+			id,
+			creature: Config.instance.itemCreatures[id.toString()],
+		}));
 	}
 
 	private registerBannerEvents() {
@@ -400,7 +448,12 @@ class ChallengeModes {
 		guild.AddMember(player, Config.instance.guildRanks[char.challenge.toString()]);
 	}
 
-	private rewardsData(player: Player) {
+	private challengeRewardsData(player: Player, classId: number, challengeName: string) {
+		const challenge = challengeFromName(challengeName);
+		AIO.Handle(player, Config.instance.channelName, "ChallengeRewardsData", this.getStoreRewards(classId, challenge), classId, challengeName);
+	}
+
+	private tokenRewardsData(player: Player) {
 		const accId = player.GetAccountId();
 		const guid = player.GetGUID();
 
@@ -411,7 +464,7 @@ class ChallengeModes {
 					return;
 				}
 
-				AIO.Handle(player, Config.instance.channelName, "RewardsData", Config.instance.rewardsStore, unlockedClasses, accountData?.tokens ?? 0);
+				AIO.Handle(player, Config.instance.channelName, "TokenRewardsData", Config.instance.rewardsStoreTokens, unlockedClasses, accountData?.tokens ?? 0);
 			});
 		});
 	}
@@ -427,16 +480,16 @@ class ChallengeModes {
 		const accId = player.GetAccountId();
 		const guid = player.GetGUID();
 
-		if (!Object.values(Config.instance.rewardsStore.items).some(items => items.includes(itemId))) {
+		if (!Object.values(Config.instance.rewardsStoreTokens.items).some(items => items.includes(itemId))) {
 			// Cancel if the item is not in the store
 			return;
 		}
-		const requiredClasses = Config.instance.rewardsStore.classRestrictions[itemId.toString()];
+		const requiredClasses = Config.instance.rewardsStoreTokens.classRestrictions[itemId.toString()];
 		if (!requiredClasses) {
 			// Cancel if class requirements are missing from the config
 			return;
 		}
-		const cost = Config.instance.rewardsStore.costs[itemId.toString()];
+		const cost = Config.instance.rewardsStoreTokens.costs[itemId.toString()];
 		if (cost === undefined) {
 			// Cancel if the cost is missing from the config
 			return;
@@ -484,6 +537,10 @@ class ChallengeModes {
 	}
 
 	private onPlayerLogin(event: PlayerEvents, player: Player) {
+		for (const creature of this.creatureDisplayCache) {
+			this.sendCreatureQueryResponse(player, creature);
+		}
+
 		if (this.isPlayerEnlisted(player)) {
 			AIO.Handle(player, Config.instance.channelName, "CheckAddonVersion", this.addonVersion);
 
@@ -586,7 +643,7 @@ class ChallengeModes {
 
 	private onPlayerGiveXP(event: PlayerEvents, player: Player, amount: number, victim: Unit, source: number): number {
 		if (!this.isPlayerEnlisted(player)) {
-			return amount;
+			return null;
 		}
 
 		if (victim) {
@@ -653,7 +710,7 @@ class ChallengeModes {
 			return 0;
 		}
 
-		return amount;
+		return null;
 	}
 
 	private onPlayerTrade(event: PlayerEvents, player: Player, target: Player): boolean {
@@ -1309,6 +1366,38 @@ class ChallengeModes {
 			return null;
 		}
 		return this.characters.get(player);
+	}
+
+	private sendCreatureQueryResponse(player: Player, data: any[]) {
+		const packet = CreatePacket(this.SMSG_CREATURE_QUERY_RESPONSE, 100);
+		packet.WriteULong(data[0]);
+		packet.WriteString(data[1] ?? "");
+		packet.WriteUByte(0);
+		packet.WriteUByte(0);
+		packet.WriteUByte(0);
+		packet.WriteString(data[2] ?? "");
+		packet.WriteString(data[3] ?? "");
+		packet.WriteULong(data[4]);
+		packet.WriteULong(data[5]);
+		packet.WriteULong(data[6]);
+		packet.WriteULong(data[7]);
+		packet.WriteULong(data[8]);
+		packet.WriteULong(data[9]);
+		packet.WriteULong(data[10]);
+		packet.WriteULong(data[11]);
+		packet.WriteULong(data[12]);
+		packet.WriteULong(data[13]);
+		packet.WriteFloat(data[14]);
+		packet.WriteFloat(data[15]);
+		packet.WriteUByte(data[16]);
+		packet.WriteULong(0);
+		packet.WriteULong(0);
+		packet.WriteULong(0);
+		packet.WriteULong(0);
+		packet.WriteULong(0);
+		packet.WriteULong(0);
+		packet.WriteULong(data[17]);
+		player.SendPacket(packet);
 	}
 
 	private log(text: string, player?: Character | Player) {

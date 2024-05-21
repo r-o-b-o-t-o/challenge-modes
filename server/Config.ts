@@ -17,7 +17,10 @@ export default class Config {
 	public shrineBuffs: number[];
 	public shrineBuffChangeTime: number;
 	public rewards: { [key: string]: { [key: string]: number[] } };
-	public rewardsStore: {
+	public itemCreatures: {
+		[key: string]: number | { id: number; x?: number; y?: number; z?: number };
+	};
+	public rewardsStoreTokens: {
 		items: { [key: string]: number[] };
 		classRestrictions: { [key: string]: number[] };
 		costs: { [key: string]: number };

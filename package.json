@@ -5,7 +5,8 @@
 	"main": "src/index.ts",
 	"scripts": {
 		"build": "tstl",
-		"watch": "tstl --watch",
+		"watch": "npm run dev",
+		"dev": "tstl --watch",
 		"lint": "eslint",
 		"clean": "rimraf build/"
 	},
