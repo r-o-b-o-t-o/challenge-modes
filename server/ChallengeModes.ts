@@ -202,7 +202,7 @@ class ChallengeModes {
 
 		const creatures = new Set<number>(Object.values(Config.instance.itemCreatures).map((val) => typeof val === "number" ? val : val.id));
 		const idsSql = Array.from(creatures).join(", ");
-		const query = WorldDBQuery("SELECT entry, `name`, subname, IconName, type_flags, `type`, family, `rank`, KillCredit1, KillCredit2, modelId1, modelId2, modelId3, modelId4, HealthModifier, ManaModifier, RacialLeader, MovementType FROM creature_template WHERE entry IN (" + idsSql + ");");
+		let query = WorldDBQuery("SELECT entry, `name`, subname, IconName, type_flags, `type`, family, `rank`, KillCredit1, KillCredit2, HealthModifier, ManaModifier, RacialLeader, MovementType FROM creature_template WHERE entry IN (" + idsSql + ");");
 		if (!query) {
 			return;
 		}
@@ -219,15 +219,31 @@ class ChallengeModes {
 				query.GetUInt32(7),
 				query.GetUInt32(8),
 				query.GetUInt32(9),
-				query.GetUInt32(10),
-				query.GetUInt32(11),
+				0,
+				0,
+				0,
+				0,
+				query.GetFloat(10),
+				query.GetFloat(11),
 				query.GetUInt32(12),
 				query.GetUInt32(13),
-				query.GetFloat(14),
-				query.GetFloat(15),
-				query.GetUInt32(16),
-				query.GetUInt32(17),
 			]);
+		} while (query.NextRow());
+
+		query = WorldDBQuery("SELECT CreatureID, Idx, CreatureDisplayID FROM creature_template_model WHERE CreatureID IN (" + idsSql + ");");
+		if (!query) {
+			return;
+		}
+
+		do {
+			const creatureId = query.GetUInt32(0);
+			const idx = this.creatureDisplayCache.findIndex((c) => c[0] === creatureId);
+			if (idx !== -1) {
+				const creature = this.creatureDisplayCache[idx];
+				const displayIdx = query.GetUInt16(1);
+				const displayId = query.GetUInt32(2);
+				creature[10 + displayIdx] = displayId;
+			}
 		} while (query.NextRow());
 	}
 
