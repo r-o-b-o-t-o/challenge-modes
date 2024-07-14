@@ -1173,6 +1173,7 @@ class ChallengeModes {
 				RunCommand(`unban character ${char.name}`);
 				char.diedOn = null;
 				char.dead = false;
+				char.charDeleted = false;
 				this.characters.set(char.guid, char);
 				char.save();
 				chatHandler.SendSysMessage("Character restored");
