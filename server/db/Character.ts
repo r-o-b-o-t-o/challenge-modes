@@ -114,7 +114,7 @@ export default class Character {
 		const res = CharDBQuery(`
 			SELECT ch.guid, ch.account, ch.name, ch.race, ch.class, ch.gender, ch.level, ch.challenge, ch.completed, ch.dead, ch.died_on, ch.char_deleted, ch.played_time
 			FROM ${Character.table()} ch
-			INNER JOIN acore_characters.characters ON characters.guid = ch.guid
+			INNER JOIN ${Config.instance.charactersDatabase}.characters ON characters.guid = ch.guid
 			WHERE
 				completed = 0 AND
 				(dead = 0 OR char_deleted = 0) AND
