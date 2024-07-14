@@ -1153,7 +1153,7 @@ class ChallengeModes {
 					return false;
 				}
 
-				res = CharDBQuery(`SELECT * FROM ${Character.table()} WHERE UPPER(name) = UPPER(\"${nameOrGuid}\") OR guid = \"${nameOrGuid}\"`);
+				res = CharDBQuery(`SELECT * FROM ${Character.table()} WHERE (UPPER(name) = UPPER(\"${nameOrGuid}\") OR guid = \"${nameOrGuid}\") AND dead = 1 ORDER BY died_on DESC`);
 				rows = Database.getRowsFromQuery(res);
 				const chars = rows.map(Character.createFromRow);
 				if (chars.length > 1) {
