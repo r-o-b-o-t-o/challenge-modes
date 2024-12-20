@@ -42,6 +42,7 @@ export default class Config {
 	public broadcastFrequency: number;
 	public guildNames: string[];
 	public guildRanks: { [key: string]: number };
+	public allowedStartingGear: number[];
 
 	public static read(): void {
 		const [file, err, errCode] = io.open(this.getDirectory() + "/../config.json", "r");

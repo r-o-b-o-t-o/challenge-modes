@@ -185,5 +185,6 @@
 			"22631": 5, "22589": 5, "22630": 5, "22632": 5
 		}
 	},
-	"rewardsSender": null
+	"rewardsSender": null,
+	"allowedStartingGear": []
 }
