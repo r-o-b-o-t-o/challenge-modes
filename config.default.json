@@ -186,5 +186,6 @@
 		}
 	},
 	"rewardsSender": null,
-	"allowedStartingGear": []
+	"allowedStartingGear": [],
+	"nameProtectionDuration": 86400
 }

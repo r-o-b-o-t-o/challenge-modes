@@ -283,6 +283,7 @@ class ChallengeModes {
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CAN_GROUP_INVITE, (...args) => this.onPlayerCanGroupInvite(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_SPELL_CAST, (...args) => this.onPlayerCastSpell(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_COMMAND, (...args) => this.onCommand(...args));
+		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CHARACTER_CREATE, (...args) => this.onCharacterCreated(...args));
 		RegisterPlayerEvent(PlayerEvents.PLAYER_EVENT_ON_CHARACTER_DELETE, (...args) => this.onCharacterDeleted(...args));
 	}
 
@@ -1263,6 +1264,24 @@ class ChallengeModes {
 
 			return true;
 		}
+	}
+
+	private onCharacterCreated(event: PlayerEvents, player: Player) {
+		const name = player.GetName();
+		const now = parseInt(GetGameTime() + "");
+		const accId = player.GetAccountId();
+		const accName = player.GetAccountName();
+		const guid = player.GetGUID();
+		
+		Character.getDeletedCharactersByName(name, (deletedCharacters: Character[]) => {
+			const duration = Config.instance.nameProtectionDuration;
+			const char = deletedCharacters.find((char) => now - char.diedOn <= duration);
+			if (char != null && char.account != accId) {
+				const protectedUntil = timestampToDate(char.diedOn + duration);
+				this.log(`Account ${accName} (ID ${accId}) tried to create character with protected name "${name}". Name is reserved for account ID ${char.account} until ${Utils.formatDate(protectedUntil)} ${Utils.formatTime(protectedUntil)} UTC.`);
+				RunCommand(`character erase ${guid}`);
+			}
+		});
 	}
 
 	private onCharacterDeleted(event: PlayerEvents, guid: number) {

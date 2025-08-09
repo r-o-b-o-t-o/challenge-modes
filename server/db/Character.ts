@@ -123,6 +123,20 @@ export default class Character {
 		return Database.getRowsFromQuery(res).map(row => this.createFromRow(row));
 	}
 
+	public static getDeletedCharactersByName(name: string, cb: (characters: Character[]) => void) {
+		CharDBQueryAsync(`
+			SELECT ch.guid, ch.account, ch.name, ch.race, ch.class, ch.gender, ch.level, ch.challenge, ch.completed, ch.dead, ch.died_on, ch.char_deleted, ch.played_time
+			FROM ${Character.table()} ch
+			INNER JOIN ${Config.instance.charactersDatabase}.characters ON characters.guid = ch.guid
+			WHERE
+				char_deleted = 1
+				AND
+				ch.name LIKE '${name}';
+		`, (res) => {
+			cb?.(Database.getRowsFromQuery(res).map(row => this.createFromRow(row)));
+		});
+	}
+
 	public static table(): string {
 		return `${Config.instance.elunaDatabase}.challenge_modes_character`;
 	}
