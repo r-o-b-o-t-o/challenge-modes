@@ -14,6 +14,13 @@ import { allChallengeModes, challengeFromName, EChallengeMode } from "./EChallen
 
 const AIO = require("AIO") as Aio;
 
+interface IDeathLog {
+	guid: number;
+	name: string;
+	diedOn: number;
+	text: string;
+}
+
 class ChallengeModes {
 	private readonly addonVersion = "1.1.0";
 
@@ -60,6 +67,7 @@ class ChallengeModes {
 	private shrineBuff: number;
 	private broadcastIdx: number;
 	private creatureDisplayCache: (string | number)[][];
+	private deathlog: { [key: string]: IDeathLog[] };
 
 	public constructor() {
 		AIO.AddHandlers(Config.instance.channelName, {
@@ -93,6 +101,7 @@ class ChallengeModes {
 		this.mobTaggingCounter = new PlayerMap();
 		this.storeBusy = new PlayerMap();
 		this.guildCounts = {};
+		this.deathlog = {};
 		this.loadCharacters();
 		this.loadGuildBans();
 		this.loadCreatureDisplayCache();
@@ -595,7 +604,7 @@ class ChallengeModes {
 			}
 
 			if (Config.instance.logging.pvpState && player.HasFlag(this.PLAYER_FLAGS, this.PLAYER_FLAGS_IN_PVP)) {
-				this.log(`Logged in with PvP enabled`, player);
+				this.log("Logged in with PvP enabled", player);
 			}
 		} else {
 			const guild = player.GetGuild();
@@ -1025,7 +1034,18 @@ class ChallengeModes {
 
 	private logPlayerDeath(player: Player, text: string) {
 		if (Config.instance.logging.died) {
-			this.log(`Died (${text}) (.go xyz ${player.GetX()} ${player.GetY()} ${player.GetZ()} ${player.GetMapId()})`, player);
+			const logStr = `Died at level ${player.GetLevel()} (${text}) (.go xyz ${player.GetX()} ${player.GetY()} ${player.GetZ()} ${player.GetMapId()})`;
+			this.log(logStr, player);
+
+			const logObj: IDeathLog = {
+				guid: player.GetGUID(),
+				name: player.GetName(),
+				diedOn: parseInt(GetGameTime() + ""),
+				text: logStr,
+			};
+			this.deathlog[player.GetName()] ??= [];
+			this.deathlog[player.GetName()].push(logObj);
+			this.deathlog[player.GetGUID().toString()] = [logObj];
 		}
 	}
 
@@ -1102,7 +1122,7 @@ class ChallengeModes {
 			const cmd = args.shift().toLowerCase();
 			const char = this.getCharacter(player);
 
-			if (isGm && ["complete", "completion", "completed"].includes(cmd)) {
+			if (isGm && ["complete"].includes(cmd)) {
 				char?.getRank((rank) => {
 					const player = GetPlayerByGUID(char.guid);
 					if (player) {
@@ -1111,7 +1131,7 @@ class ChallengeModes {
 				});
 				return false;
 			}
-			if (isGm && ["die", "dead", "death"].includes(cmd)) {
+			if (isGm && ["die", "kill"].includes(cmd)) {
 				char?.getRank((rank) => {
 					const player = GetPlayerByGUID(char.guid);
 					if (player) {
@@ -1145,17 +1165,39 @@ class ChallengeModes {
 				chatHandler.SendSysMessage(str);
 				return false;
 			}
+			if (isGm && ["deathlog", "log", "deaths", "death", "deathslog", "deathslogs"].includes(cmd)) {
+				const nameOrGuid = args.shift();
+				if (!nameOrGuid) {
+					chatHandler.SendSysMessage("Syntax: .challenge deathlog $nameOrGuid");
+					return false;
+				}
+
+				const logs = this.deathlog[nameOrGuid];
+				if (!logs || logs.length == 0) {
+					chatHandler.SendSysMessage(`No recent deaths found for character ${nameOrGuid}`);
+					return false;
+				}
+
+				const { guid, name } = logs[0];
+				const logToStr = (obj: IDeathLog) => {
+					const date = timestampToDate(obj.diedOn);
+					return `- [${Utils.formatDate(date)} ${Utils.formatTime(date)} UTC] ${obj.text}`;
+				};
+				const str = `Recent deaths for character ${name} (GUID ${guid}):\n${logs.map(logToStr).join("\n")}`;
+				chatHandler.SendSysMessage(str);
+				return false;
+			}
 			if (isGm && ["restore"].includes(cmd)) {
 				const nameOrGuid = args.shift();
 				if (!nameOrGuid) {
-					chatHandler.SendSysMessage(`Syntax: .challenge restore $nameOrGuid`);
+					chatHandler.SendSysMessage("Syntax: .challenge restore $nameOrGuid");
 					return false;
 				}
 
 				let res = CharDBQuery(`SELECT guid FROM characters WHERE UPPER(name) = UPPER(\"${nameOrGuid}\")`);
 				let rows = Database.getRowsFromQuery(res);
 				if (rows.length > 0) {
-					chatHandler.SendSysMessage(`A character with the same name already exists, cannot restore.`);
+					chatHandler.SendSysMessage("A character with the same name already exists, cannot restore.");
 					return false;
 				}
 
@@ -1198,7 +1240,7 @@ class ChallengeModes {
 					const name = chatHandler.IsConsole() ? target.name : this.getColoredName(target);
 					chatHandler.SendSysMessage(`${name} is enlisted for ${target.formatChallenges()}.`);
 				} else {
-					chatHandler.SendSysMessage(`Not enlisted for any Challenge Mode.`);
+					chatHandler.SendSysMessage("Not enlisted for any Challenge Mode.");
 				}
 				return false;
 			}
