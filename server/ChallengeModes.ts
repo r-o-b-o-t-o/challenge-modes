@@ -848,6 +848,11 @@ class ChallengeModes {
 		this.openCompletedUI(char);
 		this.removeMarkerAuras(char);
 
+		const player = GetPlayerByGUID(char.guid);
+		if (player) {
+			player.UpdatePlayerSetting(this.settingsWeekendXpSource, this.settingsWeekendXpDisable, 0);
+		}
+
 		if (char.isHardcore() && char.isIronman() && char.isBloodthirsty()) {
 			AccountData.get(char.account, (accountData) => {
 				if (!accountData) {
