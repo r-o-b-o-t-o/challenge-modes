@@ -1229,7 +1229,8 @@ class ChallengeModes {
 				char.charDeleted = false;
 				this.characters.set(char.guid, char);
 				char.save();
-				chatHandler.SendSysMessage("Character restored");
+				chatHandler.SendSysMessage(`${char.name} (${char.guid}) restored`);
+				this.log("Character restored", char);
 				return false;
 			}
 			if (["info", "inspect", "i"].includes(cmd)) {
