@@ -1222,6 +1222,14 @@ class ChallengeModes {
 				}
 
 				const char = chars[0];
+				res = CharDBQuery(`SELECT guid FROM characters WHERE account = ${char.account}`);
+				rows = Database.getRowsFromQuery(res);
+				const maxCharsPerAccount = 10;
+				if (rows.length >= maxCharsPerAccount) {
+					chatHandler.SendSysMessage(`Account is full (${maxCharsPerAccount} characters), cannot restore.`);
+					return false;
+				}
+
 				RunCommand(`character deleted restore ${char.guid}`);
 				RunCommand(`unban character ${char.name}`);
 				char.diedOn = null;
