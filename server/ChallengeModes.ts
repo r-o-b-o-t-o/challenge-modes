@@ -113,7 +113,7 @@ class ChallengeModes {
 		_G.ChallengeModes = this;
 	}
 
-	private checkEligible(player: Player, cb: (eligible: true | "Exp" | "Items" | "Money" | "Deaths" | "Mail" | "Range") => void): void {
+	private checkEligible(player: Player, cb: (eligible: true | "Exp" | "Items" | "Money" | "Deaths" | "Mail" | "Range" | "Group") => void): void {
 		// Check level and xp
 		if (player.GetLevel() > 1 || player.GetXP() > 0) {
 			return cb("Exp");
@@ -169,6 +169,11 @@ class ChallengeModes {
 		// Check for pending mails
 		if (player.GetMailCount() > 0) {
 			return cb("Mail");
+		}
+
+		// Check for pending group invite
+		if (player.GetGroup() != null || player.GetGroupInvite() != null) {
+			return cb("Group");
 		}
 
 		const guid = player.GetGUID();
