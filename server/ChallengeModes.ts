@@ -67,7 +67,7 @@ class ChallengeModes {
 	private shrineBuff: number;
 	private broadcastIdx: number;
 	private creatureDisplayCache: (string | number)[][];
-	private deathlog: { [key: string]: IDeathLog[] };
+	private deathlog: { [key: string]: IDeathLog[] }; // key = lowercase character name or character GUID converted to string
 
 	public constructor() {
 		AIO.AddHandlers(Config.instance.channelName, {
@@ -1053,8 +1053,9 @@ class ChallengeModes {
 				diedOn: parseInt(GetGameTime() + ""),
 				text: logStr,
 			};
-			this.deathlog[player.GetName()] ??= [];
-			this.deathlog[player.GetName()].push(logObj);
+			const nameKey = player.GetName().toLowerCase();
+			this.deathlog[nameKey] ??= [];
+			this.deathlog[nameKey].push(logObj);
 			this.deathlog[player.GetGUID().toString()] = [logObj];
 		}
 	}
@@ -1182,7 +1183,7 @@ class ChallengeModes {
 					return false;
 				}
 
-				const logs = this.deathlog[nameOrGuid];
+				const logs = this.deathlog[nameOrGuid.toLowerCase()];
 				if (!logs || logs.length == 0) {
 					chatHandler.SendSysMessage(`No recent deaths found for character ${nameOrGuid}`);
 					return false;
