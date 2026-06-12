@@ -652,6 +652,12 @@ class ChallengeModes {
 			return;
 		}
 
+		if (!char.dead) {
+			// Prevent from deleting the character if it hasn't died,
+			// for instance the acore-cms unstuck button issues a resurrect which would delete characters
+			return;
+		}
+
 		char.updateCharacterData(player);
 		char.charDeleted = true;
 		char.save();
