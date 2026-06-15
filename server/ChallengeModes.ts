@@ -176,6 +176,11 @@ class ChallengeModes {
 			return cb("Group");
 		}
 
+		// Make sure the player is still in range from the banner
+		if (!this.bannerGobj.isPlayerInRange(player)) {
+			return cb("Range");
+		}
+
 		const guid = player.GetGUID();
 		// Prevent getting money from COD mails
 		CharDBQueryAsync(`SELECT COUNT(id) AS c FROM mail WHERE sender = ${player.GetGUID()}`, (res) => {
@@ -187,11 +192,6 @@ class ChallengeModes {
 			const rows = Database.getRowsFromQuery(res);
 			if (rows.length > 0 && rows[0].c > 0) {
 				return cb("Mail");
-			}
-
-			// Make sure the player is still in range from the banner
-			if (!this.bannerGobj.isPlayerInRange(player)) {
-				return cb("Range");
 			}
 
 			cb(true);
@@ -1340,7 +1340,7 @@ class ChallengeModes {
 		const accId = player.GetAccountId();
 		const accName = player.GetAccountName();
 		const guid = player.GetGUID();
-		
+
 		Character.getDeletedCharactersByName(name, (deletedCharacters: Character[]) => {
 			const duration = Config.instance.nameProtectionDuration;
 			const char = deletedCharacters.find((char) => now - char.diedOn <= duration);
@@ -1405,6 +1405,7 @@ class ChallengeModes {
 
 			if (eligible !== true) {
 				player.SendNotification(`Could not enable the ${EChallengeMode[challenge]} challenge.`);
+				this.log(`Could not enable the ${EChallengeMode[challenge]} challenge: ${eligible}`, player);
 				return;
 			}
 

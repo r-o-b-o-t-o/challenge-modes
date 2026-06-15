@@ -1,29 +1,28 @@
 import Utils from "./Utils";
 import Config from "./Config";
+import PlayerMap from "./PlayerMap";
 
 const AIO = require("AIO") as Aio;
 
 interface IPlayerUsingGobj {
 	gobj: number;
-	player: number;
 	map: number;
 	responseReceived: boolean;
 }
 
 export default class ChallengeGameObject {
-	private players: IPlayerUsingGobj[];
+	private players: PlayerMap<IPlayerUsingGobj>;
 	private range: number;
 
 	public constructor(range: number, closeMessage: string) {
 		this.range = range;
-		this.players = [];
+		this.players = new PlayerMap<IPlayerUsingGobj>();
 
 		CreateLuaEvent(() => {
-			for (let i = this.players.length - 1; i >= 0; --i) {
-				const obj = this.players[i];
-				const player = GetPlayerByGUID(obj.player);
+			for (const key of this.players.keys()) {
+				const player = GetPlayerByGUID(tonumber(key));
 				if (player === undefined || !this.isPlayerInRange(player)) {
-					this.players.splice(i, 1);
+					this.players.delete(key);
 					if (player !== undefined) {
 						AIO.Handle(player, Config.instance.channelName, closeMessage);
 					}
@@ -34,21 +33,19 @@ export default class ChallengeGameObject {
 
 	public use(gobj: GameObject, player: Player) {
 		const guid = player.GetGUID();
-		if (this.players.some(obj => obj.player === guid)) {
+		if (this.players.has(guid)) {
 			return;
 		}
 
-		this.players.push({
+		this.players.set(guid, {
 			gobj: gobj.GetGUID(),
-			player: guid,
 			map: gobj.GetMapId(),
 			responseReceived: false,
 		});
 
 		CreateLuaEvent(() => {
 			const player = GetPlayerByGUID(guid);
-			const obj = this.players.find(obj => obj.player === guid);
-			if (player && obj?.responseReceived === false) {
+			if (player && this.players.get(player)?.responseReceived === false) {
 				Utils.notifyInstallAddon(player);
 				this.close(player);
 			}
@@ -56,20 +53,19 @@ export default class ChallengeGameObject {
 	}
 
 	public close(player: Player) {
-		const idx = this.players.findIndex(obj => obj.player === player.GetGUID());
-		if (idx !== -1) {
-			this.players.splice(idx, 1);
-		}
+		this.players.delete(player);
 	}
 
 	public responseReceived(player: Player) {
-		const obj = this.players.find(obj => obj.player === player.GetGUID());
-		obj.responseReceived = true;
+		const obj = this.players.get(player);
+		if (obj) {
+			obj.responseReceived = true;
+		}
 	}
 
 	public isPlayerInRange(player: Player): boolean {
-		const obj = this.players.find(obj => obj.player === player.GetGUID());
-		if (obj === undefined) {
+		const obj = this.players.get(player);
+		if (!obj) {
 			return false;
 		}
 
