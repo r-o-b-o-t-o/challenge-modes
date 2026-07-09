@@ -45,7 +45,9 @@ class ChallengeModes {
 	private readonly PLAYER_FLAGS_IN_PVP = 0x00000200;
 
 	private readonly settingsWeekendXpSource = "mod-double-xp-weekend";
-	private readonly settingsWeekendXpDisable = 1;
+	private readonly settingsWeekendXpDisableKey = 1;
+	private readonly settingsBgAutoQueueSource = "mod-bg-auto-queue";
+	private readonly settingsBgAutoQueueOptOutKey = 1;
 
 	// Ids
 	private readonly allianceGobjEntry = 2000000;
@@ -597,7 +599,8 @@ class ChallengeModes {
 				}, 10_000);
 			}
 
-			player.UpdatePlayerSetting(this.settingsWeekendXpSource, this.settingsWeekendXpDisable, 1);
+			this.toggleWeekendXp(player, false);
+			this.toggleBgAutoQueue(player, false);
 
 			if ((char.level ?? 0) < player.GetLevel()) {
 				// Refresh in case of desync, forces rewards to be sent if a character
@@ -861,7 +864,8 @@ class ChallengeModes {
 
 		const player = GetPlayerByGUID(char.guid);
 		if (player) {
-			player.UpdatePlayerSetting(this.settingsWeekendXpSource, this.settingsWeekendXpDisable, 0);
+			this.toggleWeekendXp(player, true);
+			this.toggleBgAutoQueue(player, true);
 		}
 
 		if (char.isHardcore() && char.isIronman() && char.isBloodthirsty()) {
@@ -1447,7 +1451,8 @@ class ChallengeModes {
 			}
 
 			player.AddAura(Config.instance.markerAuras[challenge.toString()], player);
-			player.UpdatePlayerSetting(this.settingsWeekendXpSource, this.settingsWeekendXpDisable, 1);
+			this.toggleWeekendXp(player, false);
+			this.toggleBgAutoQueue(player, false);
 		});
 	}
 
@@ -1573,6 +1578,14 @@ class ChallengeModes {
 		}
 
 		return result;
+	}
+
+	private toggleBgAutoQueue(player: Player, enabled: boolean) {
+		player.UpdatePlayerSetting(this.settingsBgAutoQueueSource, this.settingsBgAutoQueueOptOutKey, enabled ? 0 : 1);
+	}
+
+	private toggleWeekendXp(player: Player, enabled: boolean) {
+		player.UpdatePlayerSetting(this.settingsWeekendXpSource, this.settingsWeekendXpDisableKey, enabled ? 0 : 1);
 	}
 
 	private getCurrentDate(): Date {
