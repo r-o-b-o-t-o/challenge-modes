@@ -1414,7 +1414,7 @@ class ChallengeModes {
 			}
 
 			if (!char) {
-				char = new Character(player.GetGUID(), player.GetAccountId(), player.GetName(), player.GetRace(), player.GetClass(), player.GetGender(), player.GetLevel(), challenge);
+				char = new Character(player.GetGUID(), player.GetAccountId(), player.GetName(), player.GetRace(), player.GetClass(), Character.readGender(player), player.GetLevel(), challenge);
 				this.characters.set(player, char);
 			} else {
 				char.addChallenge(challenge);
