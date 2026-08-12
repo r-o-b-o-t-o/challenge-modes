@@ -106,8 +106,16 @@ export default class Character {
 		this.account = player.GetAccountId();
 		this.class = player.GetClass();
 		this.race = player.GetRace();
-		this.gender = player.GetGender();
+		this.gender = Character.readGender(player, this.gender);
 		this.level = player.GetLevel();
+	}
+
+	// Player:GetGender() reads the unit field that SetDisplayId overwrites with the model's
+	// own gender, and shapeshift models are GENDER_NONE, so a druid in cat form or a shaman
+	// in ghost wolf reports 2. Keep the last known value rather than storing that.
+	public static readGender(player: Player, current = 0): number {
+		const gender = player.GetGender();
+		return gender > 1 ? current : gender;
 	}
 
 	public static getAllActive(): Character[] {
